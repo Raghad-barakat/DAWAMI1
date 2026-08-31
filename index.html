@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-
 <html lang="ar" dir="rtl">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,561 +10,1071 @@
   <link rel="stylesheet" href="assets/style.css">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 </head>
 
 <body>
 
+<!-- =========================
+     LOGIN
+========================= -->
+
 <div id="loginScreen" class="login-screen">
+
   <div class="login-card">
 
-```
-<div class="logo">D</div>
+    <div class="logo">D</div>
 
-<h1>DAWAMI1</h1>
-<p class="login-subtitle">نظام الموظفين والدوام والرواتب</p>
+    <h1>DAWAMI1</h1>
 
-<form id="loginForm">
+    <p class="login-subtitle">
+      نظام الموظفين والدوام والرواتب
+    </p>
 
-  <div class="form-group">
-    <label>البريد الإلكتروني</label>
-    <input type="email" id="email" required>
+    <form id="loginForm">
+
+      <div class="form-group">
+        <label for="email">البريد الإلكتروني</label>
+        <input
+          type="email"
+          id="email"
+          autocomplete="email"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">كلمة المرور</label>
+        <input
+          type="password"
+          id="password"
+          autocomplete="current-password"
+          required
+        >
+      </div>
+
+      <button
+        class="primary-button"
+        type="submit"
+      >
+        تسجيل الدخول
+      </button>
+
+      <button
+        type="button"
+        id="forgotPasswordBtn"
+        class="text-button"
+      >
+        نسيت كلمة المرور؟
+      </button>
+
+      <div id="loginMessage"></div>
+
+    </form>
+
   </div>
 
-  <div class="form-group">
-    <label>كلمة المرور</label>
-    <input type="password" id="password" required>
-  </div>
-
-  <button class="primary-button" type="submit">
-    تسجيل الدخول
-  </button>
-
-  <div id="loginMessage"></div>
-
-</form>
-```
-
-  </div>
 </div>
+
+
+<!-- =========================
+     FORGOT PASSWORD
+========================= -->
+
+<div id="forgotScreen" class="login-screen hidden">
+
+  <div class="login-card">
+
+    <div class="logo">D</div>
+
+    <h1>استعادة كلمة المرور</h1>
+
+    <p class="login-subtitle">
+      أدخل بريدك الإلكتروني لإرسال رابط تغيير كلمة المرور.
+    </p>
+
+    <form id="forgotForm">
+
+      <div class="form-group">
+        <label for="forgotEmail">
+          البريد الإلكتروني
+        </label>
+
+        <input
+          type="email"
+          id="forgotEmail"
+          autocomplete="email"
+          required
+        >
+      </div>
+
+      <button
+        class="primary-button"
+        type="submit"
+      >
+        إرسال رابط الاستعادة
+      </button>
+
+      <button
+        type="button"
+        id="backToLoginBtn"
+        class="text-button"
+      >
+        العودة لتسجيل الدخول
+      </button>
+
+      <div id="forgotMessage"></div>
+
+    </form>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     RESET PASSWORD
+========================= -->
+
+<div id="resetScreen" class="login-screen hidden">
+
+  <div class="login-card">
+
+    <div class="logo">D</div>
+
+    <h1>تغيير كلمة المرور</h1>
+
+    <p class="login-subtitle">
+      أدخل كلمة المرور الجديدة لحسابك.
+    </p>
+
+    <form id="resetForm">
+
+      <div class="form-group">
+
+        <label for="newPassword">
+          كلمة المرور الجديدة
+        </label>
+
+        <input
+          type="password"
+          id="newPassword"
+          minlength="6"
+          autocomplete="new-password"
+          required
+        >
+
+      </div>
+
+      <div class="form-group">
+
+        <label for="confirmPassword">
+          تأكيد كلمة المرور
+        </label>
+
+        <input
+          type="password"
+          id="confirmPassword"
+          minlength="6"
+          autocomplete="new-password"
+          required
+        >
+
+      </div>
+
+      <button
+        class="primary-button"
+        type="submit"
+      >
+        حفظ كلمة المرور
+      </button>
+
+      <div id="resetMessage"></div>
+
+    </form>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     APP
+========================= -->
 
 <div id="app" class="hidden">
 
   <aside class="sidebar">
 
-```
-<div class="sidebar-logo">
+    <div class="sidebar-logo">
 
-  <div class="sidebar-logo-icon">D</div>
+      <div class="sidebar-logo-icon">
+        D
+      </div>
 
-  <div>
-    <div class="sidebar-logo-text">DAWAMI1</div>
-    <small>Employee System</small>
-  </div>
+      <div>
+        <div class="sidebar-logo-text">
+          DAWAMI1
+        </div>
 
-</div>
+        <small>
+          Employee System
+        </small>
+      </div>
 
-
-<nav class="nav">
-
-  <button class="nav-btn active" data-page="dashboard">
-    الرئيسية
-  </button>
-
-  <button class="nav-btn" data-page="attendance">
-    الدوام
-  </button>
-
-  <button class="nav-btn" data-page="leave">
-    الإجازات
-  </button>
-
-  <button class="nav-btn" data-page="payroll">
-    الراتب
-  </button>
-
-  <button id="adminEmployeesNav"
-          class="nav-btn hidden"
-          data-page="employees">
-    الموظفين
-  </button>
-
-  <button id="adminAttendanceNav"
-          class="nav-btn hidden"
-          data-page="adminAttendance">
-    إدارة الدوام
-  </button>
-
-  <button id="adminLeavesNav"
-          class="nav-btn hidden"
-          data-page="adminLeaves">
-    طلبات الإجازات
-  </button>
-
-</nav>
+    </div>
 
 
-<button id="logoutBtn" class="logout-button">
-  تسجيل الخروج
-</button>
-```
+    <nav class="nav">
+
+      <button
+        class="nav-btn active"
+        data-page="dashboard"
+      >
+        الرئيسية
+      </button>
+
+      <button
+        class="nav-btn"
+        data-page="attendance"
+      >
+        الدوام
+      </button>
+
+      <button
+        class="nav-btn"
+        data-page="leave"
+      >
+        الإجازات
+      </button>
+
+      <button
+        class="nav-btn"
+        data-page="payroll"
+      >
+        الراتب
+      </button>
+
+      <button
+        id="adminEmployeesNav"
+        class="nav-btn hidden"
+        data-page="employees"
+      >
+        الموظفين
+      </button>
+
+      <button
+        id="adminAttendanceNav"
+        class="nav-btn hidden"
+        data-page="adminAttendance"
+      >
+        إدارة الدوام
+      </button>
+
+      <button
+        id="adminLeavesNav"
+        class="nav-btn hidden"
+        data-page="adminLeaves"
+      >
+        طلبات الإجازات
+      </button>
+
+    </nav>
+
+
+    <button
+      id="logoutBtn"
+      class="logout-button"
+    >
+      تسجيل الخروج
+    </button>
 
   </aside>
 
+
   <main class="main-content">
 
-```
-<header class="topbar">
+    <!-- TOPBAR -->
 
-  <div>
-    <span class="eyebrow">DAWAMI1</span>
-    <h2 id="welcomeText">مرحباً</h2>
-    <p>تابع دوامك وساعات عملك وراتبك.</p>
-  </div>
+    <header class="topbar">
 
-  <div id="currentDate"></div>
-
-</header>
-
-
-<!-- DASHBOARD -->
-
-<section id="dashboard" class="page active">
-
-  <div class="card attendance-card">
-
-    <div class="attendance-info">
-
-      <h3 id="todayStatus">
-        لم تسجل حضورك
-      </h3>
-
-      <p id="todayMessage">
-        اضغط على الزر لتسجيل بداية الدوام.
-      </p>
-
-    </div>
-
-    <button id="attendanceButton"
-            class="attendance-button">
-      تسجيل حضور
-    </button>
-
-  </div>
-
-
-  <div class="cards-grid">
-
-    <div class="card stat-card">
-      <div class="card-label">ساعات هذا الشهر</div>
-      <div class="card-value" id="monthlyHours">0:00</div>
-    </div>
-
-    <div class="card stat-card">
-      <div class="card-label">ساعات الإضافي</div>
-      <div class="card-value" id="overtimeHours">0:00</div>
-    </div>
-
-    <div class="card stat-card">
-      <div class="card-label">الراتب المتوقع</div>
-      <div class="card-value" id="expectedSalary">₪0</div>
-    </div>
-
-    <div class="card stat-card">
-      <div class="card-label">حالة الدوام</div>
-      <div class="card-value success" id="attendanceAlert">
-        سليم
-      </div>
-    </div>
-
-  </div>
-
-
-  <div class="card table-card">
-
-    <div class="table-header">
       <div>
-        <h3>آخر الدوامات</h3>
-        <p>آخر سجلات الحضور والانصراف.</p>
-      </div>
-    </div>
 
-    <div class="table-wrapper">
+        <span class="eyebrow">
+          DAWAMI1
+        </span>
 
-      <table>
+        <h2 id="welcomeText">
+          مرحباً
+        </h2>
 
-        <thead>
-          <tr>
-            <th>التاريخ</th>
-            <th>الحضور</th>
-            <th>الانصراف</th>
-            <th>الساعات</th>
-            <th>الإضافي</th>
-            <th>الحالة</th>
-          </tr>
-        </thead>
+        <p>
+          تابع دوامك وساعات عملك وراتبك.
+        </p>
 
-        <tbody id="recentAttendance"></tbody>
-
-      </table>
-
-    </div>
-
-  </div>
-
-</section>
-
-
-<!-- ATTENDANCE -->
-
-<section id="attendance" class="page">
-
-  <div class="card table-card">
-
-    <div class="table-header">
-      <div>
-        <h3>سجل الدوام</h3>
-        <p>جميع سجلات حضورك وانصرافك.</p>
-      </div>
-    </div>
-
-    <div class="table-wrapper">
-
-      <table>
-
-        <thead>
-          <tr>
-            <th>التاريخ</th>
-            <th>الحضور</th>
-            <th>الانصراف</th>
-            <th>الساعات</th>
-            <th>الإضافي</th>
-            <th>الحالة</th>
-          </tr>
-        </thead>
-
-        <tbody id="allAttendance"></tbody>
-
-      </table>
-
-    </div>
-
-  </div>
-
-</section>
-
-
-<!-- LEAVES -->
-
-<section id="leave" class="page">
-
-  <div class="card">
-
-    <h3>الإجازات</h3>
-    <p>قدم طلب إجازة وتابع حالته.</p>
-
-    <div class="leave-summary">
-
-      <div class="card">
-        <div class="card-label">المتاح</div>
-        <div class="leave-number" id="leaveAvailable">18</div>
       </div>
 
-      <div class="card">
-        <div class="card-label">المستخدم</div>
-        <div class="leave-number" id="leaveUsed">0</div>
-      </div>
+      <div id="currentDate"></div>
 
-      <div class="card">
-        <div class="card-label">المتبقي</div>
-        <div class="leave-number" id="leaveRemaining">18</div>
-      </div>
-
-    </div>
+    </header>
 
 
-    <form id="leaveForm" class="leave-form">
+    <!-- =========================
+         DASHBOARD
+    ========================= -->
 
-      <div class="form-group">
-        <label>من</label>
-        <input type="date" id="leaveStart" required>
-      </div>
+    <section
+      id="dashboard"
+      class="page active"
+    >
 
-      <div class="form-group">
-        <label>إلى</label>
-        <input type="date" id="leaveEnd" required>
-      </div>
+      <div class="card attendance-card">
 
-      <div class="form-group full">
-        <label>السبب</label>
-        <input
-          type="text"
-          id="leaveReason"
-          placeholder="سبب الإجازة"
-          required
+        <div class="attendance-info">
+
+          <h3 id="todayStatus">
+            لم تسجل حضورك
+          </h3>
+
+          <p id="todayMessage">
+            اضغط على الزر لتسجيل بداية الدوام.
+          </p>
+
+        </div>
+
+        <button
+          id="attendanceButton"
+          class="attendance-button"
         >
-      </div>
-
-      <button class="leave-submit full" type="submit">
-        إرسال طلب الإجازة
-      </button>
-
-    </form>
-
-    <div id="leaveList" class="leave-list"></div>
-
-  </div>
-
-</section>
-
-
-<!-- PAYROLL -->
-
-<section id="payroll" class="page">
-
-  <div class="card salary-card">
-
-    <h3>الراتب المتوقع</h3>
-
-    <div class="salary-row">
-      <span>الراتب الأساسي</span>
-      <strong id="baseSalary">₪0</strong>
-    </div>
-
-    <div class="salary-row">
-      <span>الإضافي</span>
-      <strong id="overtimePay">₪0</strong>
-    </div>
-
-    <div class="salary-row">
-      <span>الخصومات</span>
-      <strong id="deductions">₪0</strong>
-    </div>
-
-    <div class="salary-row">
-      <span>الراتب المتوقع</span>
-      <strong class="salary-total" id="totalSalary">
-        ₪0
-      </strong>
-    </div>
-
-  </div>
-
-</section>
-
-
-<!-- EMPLOYEES ADMIN -->
-
-<section id="employees" class="page">
-
-  <div class="card">
-
-    <div class="table-header">
-      <div>
-        <h3>إدارة الموظفين</h3>
-        <p>إضافة وتعديل بيانات الموظفين.</p>
-      </div>
-
-      <button id="showEmployeeForm"
-              class="primary-button small-button">
-        + إضافة موظف
-      </button>
-    </div>
-
-
-    <form id="employeeForm"
-          class="employee-form hidden">
-
-      <input type="hidden" id="employeeId">
-
-      <div class="form-group">
-        <label>الاسم الكامل</label>
-        <input id="employeeName" required>
-      </div>
-
-      <div class="form-group">
-        <label>البريد الإلكتروني</label>
-        <input type="email" id="employeeEmail" required>
-      </div>
-
-      <div class="form-group">
-        <label>رقم الموظف</label>
-        <input id="employeeNumber">
-      </div>
-
-      <div class="form-group">
-        <label>القسم</label>
-        <input id="employeeDepartment">
-      </div>
-
-      <div class="form-group">
-        <label>المسمى الوظيفي</label>
-        <input id="employeeJobTitle">
-      </div>
-
-      <div class="form-group">
-        <label>الراتب الشهري</label>
-        <input type="number"
-               step="0.01"
-               id="employeeSalary"
-               required>
-      </div>
-
-      <div class="form-group">
-        <label>ساعات العمل اليومية</label>
-        <input type="number"
-               step="0.5"
-               id="employeeHours"
-               value="8"
-               required>
-      </div>
-
-      <div class="form-group">
-        <label>أيام العمل بالأسبوع</label>
-        <input type="number"
-               id="employeeDays"
-               value="6"
-               required>
-      </div>
-
-      <div class="employee-form-actions">
-
-        <button type="submit"
-                class="primary-button">
-          حفظ البيانات
-        </button>
-
-        <button type="button"
-                id="cancelEmployeeForm"
-                class="secondary-button">
-          إلغاء
+          تسجيل حضور
         </button>
 
       </div>
 
-    </form>
+
+      <div class="cards-grid">
+
+        <div class="card stat-card">
+
+          <div class="card-label">
+            ساعات هذا الشهر
+          </div>
+
+          <div
+            class="card-value"
+            id="monthlyHours"
+          >
+            0:00
+          </div>
+
+        </div>
 
 
-    <div class="table-wrapper">
+        <div class="card stat-card">
 
-      <table>
+          <div class="card-label">
+            ساعات الإضافي
+          </div>
 
-        <thead>
-          <tr>
-            <th>الموظف</th>
-            <th>البريد</th>
-            <th>القسم</th>
-            <th>الراتب</th>
-            <th>الساعات</th>
-            <th>الأيام</th>
-            <th>الحالة</th>
-            <th>إجراء</th>
-          </tr>
-        </thead>
+          <div
+            class="card-value"
+            id="overtimeHours"
+          >
+            0:00
+          </div>
 
-        <tbody id="employeesTable"></tbody>
-
-      </table>
-
-    </div>
-
-  </div>
-
-</section>
+        </div>
 
 
-<!-- ADMIN ATTENDANCE -->
+        <div class="card stat-card">
 
-<section id="adminAttendance" class="page">
+          <div class="card-label">
+            الراتب المتوقع
+          </div>
 
-  <div class="card table-card">
+          <div
+            class="card-value"
+            id="expectedSalary"
+          >
+            ₪0
+          </div>
 
-    <div class="table-header">
-      <div>
-        <h3>إدارة الدوام</h3>
-        <p>جميع سجلات الموظفين.</p>
+        </div>
+
+
+        <div class="card stat-card">
+
+          <div class="card-label">
+            حالة الدوام
+          </div>
+
+          <div
+            class="card-value success"
+            id="attendanceAlert"
+          >
+            سليم
+          </div>
+
+        </div>
+
       </div>
-    </div>
-
-    <div class="table-wrapper">
-
-      <table>
-
-        <thead>
-          <tr>
-            <th>الموظف</th>
-            <th>التاريخ</th>
-            <th>الحضور</th>
-            <th>الانصراف</th>
-            <th>الساعات</th>
-            <th>الإضافي</th>
-            <th>الحالة</th>
-            <th>تعديل</th>
-          </tr>
-        </thead>
-
-        <tbody id="adminAttendanceTable"></tbody>
-
-      </table>
-
-    </div>
-
-  </div>
-
-</section>
 
 
-<!-- ADMIN LEAVES -->
+      <div class="card table-card">
 
-<section id="adminLeaves" class="page">
+        <div class="table-header">
 
-  <div class="card table-card">
+          <div>
 
-    <div class="table-header">
-      <div>
-        <h3>طلبات الإجازات</h3>
-        <p>مراجعة طلبات الموظفين.</p>
+            <h3>
+              آخر الدوامات
+            </h3>
+
+            <p>
+              آخر سجلات الحضور والانصراف.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+
+              <tr>
+                <th>التاريخ</th>
+                <th>الحضور</th>
+                <th>الانصراف</th>
+                <th>الساعات</th>
+                <th>الإضافي</th>
+                <th>الحالة</th>
+              </tr>
+
+            </thead>
+
+            <tbody id="recentAttendance"></tbody>
+
+          </table>
+
+        </div>
+
       </div>
-    </div>
 
-    <div class="table-wrapper">
-
-      <table>
-
-        <thead>
-          <tr>
-            <th>الموظف</th>
-            <th>من</th>
-            <th>إلى</th>
-            <th>الأيام</th>
-            <th>السبب</th>
-            <th>الحالة</th>
-            <th>الإجراء</th>
-          </tr>
-        </thead>
-
-        <tbody id="adminLeavesTable"></tbody>
-
-      </table>
-
-    </div>
-
-  </div>
-
-</section>
+    </section>
 
 
-<footer>
-  DAWAMI1 © 2026
-</footer>
-```
+    <!-- =========================
+         ATTENDANCE
+    ========================= -->
+
+    <section
+      id="attendance"
+      class="page"
+    >
+
+      <div class="card table-card">
+
+        <div class="table-header">
+
+          <div>
+
+            <h3>
+              سجل الدوام
+            </h3>
+
+            <p>
+              جميع سجلات حضورك وانصرافك.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+
+              <tr>
+                <th>التاريخ</th>
+                <th>الحضور</th>
+                <th>الانصراف</th>
+                <th>الساعات</th>
+                <th>الإضافي</th>
+                <th>الحالة</th>
+              </tr>
+
+            </thead>
+
+            <tbody id="allAttendance"></tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         LEAVE
+    ========================= -->
+
+    <section
+      id="leave"
+      class="page"
+    >
+
+      <div class="card">
+
+        <h3>
+          الإجازات
+        </h3>
+
+        <p>
+          قدم طلب إجازة وتابع حالته.
+        </p>
+
+
+        <div class="leave-summary">
+
+          <div class="card">
+
+            <div class="card-label">
+              المتاح
+            </div>
+
+            <div
+              class="leave-number"
+              id="leaveAvailable"
+            >
+              18
+            </div>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="card-label">
+              المستخدم
+            </div>
+
+            <div
+              class="leave-number"
+              id="leaveUsed"
+            >
+              0
+            </div>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="card-label">
+              المتبقي
+            </div>
+
+            <div
+              class="leave-number"
+              id="leaveRemaining"
+            >
+              18
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <form
+          id="leaveForm"
+          class="leave-form"
+        >
+
+          <div class="form-group">
+
+            <label for="leaveStart">
+              من
+            </label>
+
+            <input
+              type="date"
+              id="leaveStart"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="leaveEnd">
+              إلى
+            </label>
+
+            <input
+              type="date"
+              id="leaveEnd"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group full">
+
+            <label for="leaveReason">
+              السبب
+            </label>
+
+            <input
+              type="text"
+              id="leaveReason"
+              placeholder="سبب الإجازة"
+              required
+            >
+
+          </div>
+
+
+          <button
+            class="leave-submit full"
+            type="submit"
+          >
+            إرسال طلب الإجازة
+          </button>
+
+        </form>
+
+
+        <div
+          id="leaveList"
+          class="leave-list"
+        ></div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         PAYROLL
+    ========================= -->
+
+    <section
+      id="payroll"
+      class="page"
+    >
+
+      <div class="card salary-card">
+
+        <h3>
+          الراتب المتوقع
+        </h3>
+
+
+        <div class="salary-row">
+
+          <span>
+            الراتب الأساسي
+          </span>
+
+          <strong id="baseSalary">
+            ₪0
+          </strong>
+
+        </div>
+
+
+        <div class="salary-row">
+
+          <span>
+            الإضافي
+          </span>
+
+          <strong id="overtimePay">
+            ₪0
+          </strong>
+
+        </div>
+
+
+        <div class="salary-row">
+
+          <span>
+            الخصومات
+          </span>
+
+          <strong id="deductions">
+            ₪0
+          </strong>
+
+        </div>
+
+
+        <div class="salary-row">
+
+          <span>
+            الراتب المتوقع
+          </span>
+
+          <strong
+            class="salary-total"
+            id="totalSalary"
+          >
+            ₪0
+          </strong>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         EMPLOYEES
+    ========================= -->
+
+    <section
+      id="employees"
+      class="page"
+    >
+
+      <div class="card">
+
+        <div class="table-header">
+
+          <div>
+
+            <h3>
+              إدارة الموظفين
+            </h3>
+
+            <p>
+              إضافة وتعديل بيانات الموظفين.
+            </p>
+
+          </div>
+
+
+          <button
+            id="showEmployeeForm"
+            class="primary-button small-button"
+          >
+            + إضافة موظف
+          </button>
+
+        </div>
+
+
+        <form
+          id="employeeForm"
+          class="employee-form hidden"
+        >
+
+          <input
+            type="hidden"
+            id="employeeId"
+          >
+
+
+          <div class="form-group">
+
+            <label>
+              الاسم الكامل
+            </label>
+
+            <input
+              id="employeeName"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              البريد الإلكتروني
+            </label>
+
+            <input
+              type="email"
+              id="employeeEmail"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              رقم الموظف
+            </label>
+
+            <input id="employeeNumber">
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              القسم
+            </label>
+
+            <input id="employeeDepartment">
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              المسمى الوظيفي
+            </label>
+
+            <input id="employeeJobTitle">
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              الراتب الشهري
+            </label>
+
+            <input
+              type="number"
+              step="0.01"
+              id="employeeSalary"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              ساعات العمل اليومية
+            </label>
+
+            <input
+              type="number"
+              step="0.5"
+              id="employeeHours"
+              value="8"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>
+              أيام العمل بالأسبوع
+            </label>
+
+            <input
+              type="number"
+              id="employeeDays"
+              value="6"
+              required
+            >
+
+          </div>
+
+
+          <div class="employee-form-actions">
+
+            <button
+              type="submit"
+              class="primary-button"
+            >
+              حفظ البيانات
+            </button>
+
+            <button
+              type="button"
+              id="cancelEmployeeForm"
+              class="secondary-button"
+            >
+              إلغاء
+            </button>
+
+          </div>
+
+        </form>
+
+
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+
+              <tr>
+                <th>الموظف</th>
+                <th>البريد</th>
+                <th>القسم</th>
+                <th>الراتب</th>
+                <th>الساعات</th>
+                <th>الأيام</th>
+                <th>الحالة</th>
+                <th>إجراء</th>
+              </tr>
+
+            </thead>
+
+            <tbody id="employeesTable"></tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         ADMIN ATTENDANCE
+    ========================= -->
+
+    <section
+      id="adminAttendance"
+      class="page"
+    >
+
+      <div class="card table-card">
+
+        <div class="table-header">
+
+          <div>
+
+            <h3>
+              إدارة الدوام
+            </h3>
+
+            <p>
+              جميع سجلات الموظفين.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+
+              <tr>
+                <th>الموظف</th>
+                <th>التاريخ</th>
+                <th>الحضور</th>
+                <th>الانصراف</th>
+                <th>الساعات</th>
+                <th>الإضافي</th>
+                <th>الحالة</th>
+                <th>تعديل</th>
+              </tr>
+
+            </thead>
+
+            <tbody id="adminAttendanceTable"></tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         ADMIN LEAVES
+    ========================= -->
+
+    <section
+      id="adminLeaves"
+      class="page"
+    >
+
+      <div class="card table-card">
+
+        <div class="table-header">
+
+          <div>
+
+            <h3>
+              طلبات الإجازات
+            </h3>
+
+            <p>
+              مراجعة طلبات الموظفين.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+
+              <tr>
+                <th>الموظف</th>
+                <th>من</th>
+                <th>إلى</th>
+                <th>الأيام</th>
+                <th>السبب</th>
+                <th>الحالة</th>
+                <th>الإجراء</th>
+              </tr>
+
+            </thead>
+
+            <tbody id="adminLeavesTable"></tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <footer>
+      DAWAMI1 © 2026
+    </footer>
 
   </main>
 
 </div>
 
-<script src="assets/config.js"></script>
 
+<script src="assets/config.js"></script>
 <script src="assets/app.js"></script>
 
 </body>
