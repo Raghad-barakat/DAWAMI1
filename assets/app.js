@@ -2471,61 +2471,37 @@ function setupEvents() {
 
         message.textContent =
           "جاري تسجيل الدخول...";
+try {
 
-        try {
+  await login(
+    email,
+    password
+  );
 
-          await login(
-            email,
-            password
-          );
+  message.style.color =
+    "var(--success)";
 
-          message.textContent =
-            "";
+  message.textContent =
+    "تم تسجيل الدخول بنجاح.";
 
-        } catch (error) {
+} catch (error) {
 
-          console.error(
-            "LOGIN ERROR:",
-            error
-          );
+  console.error(
+    "LOGIN ERROR:",
+    error
+  );
 
-          /*
-            نعرض رسالة الخطأ الحقيقية
-            بدل إخفائها.
-          */
+  message.style.color =
+    "var(--danger)";
 
-          let errorMessage =
-            error?.message ||
-            "حدث خطأ أثناء تسجيل الدخول.";
+  message.textContent =
+    error?.message ||
+    error?.error_description ||
+    "حدث خطأ أثناء تسجيل الدخول.";
+}
+      
 
-          /*
-            رسائل مفهومة للمستخدم.
-          */
-
-          if (
-            error?.message ===
-            "Invalid login credentials"
-          ) {
-
-            errorMessage =
-              "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
-          }
-
-          if (
-            error?.message?.toLowerCase()
-              .includes("email not confirmed")
-          ) {
-
-            errorMessage =
-              "البريد الإلكتروني للحساب غير مؤكد.";
-          }
-
-          message.style.color =
-            "var(--danger)";
-
-          message.textContent =
-            errorMessage;
-        }
+        
 
       }
     );
