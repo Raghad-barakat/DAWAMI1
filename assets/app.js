@@ -1,8 +1,7 @@
-```javascript
 /* =====================================================
    DAWAMI1
    Employee Attendance & Payroll System
-   Secure Employee/Admin Version
+   Secure Employee / Admin Version
 ===================================================== */
 
 
@@ -23,11 +22,10 @@ if (
   throw new Error("مكتبة Supabase لم يتم تحميلها.");
 }
 
-const supabaseClient =
-  window.supabase.createClient(
-    config.SUPABASE_URL,
-    config.SUPABASE_KEY
-  );
+const supabaseClient = window.supabase.createClient(
+  config.SUPABASE_URL,
+  config.SUPABASE_KEY
+);
 
 
 let currentUser = null;
@@ -47,102 +45,102 @@ function $(id) {
 
 
 function formatMoney(amount) {
-  return "₪" +
-    Number(amount || 0).toLocaleString(
-      "en-US",
-      {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      }
-    );
+  return (
+    "₪" +
+    Number(amount || 0).toLocaleString("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    })
+  );
 }
 
 
 function formatMinutes(minutes) {
-
   minutes = Math.max(
     0,
     Math.round(Number(minutes || 0))
   );
 
-  const hours =
-    Math.floor(minutes / 60);
-
-  const mins =
-    minutes % 60;
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
 
   return `${hours}:${String(mins).padStart(2, "0")}`;
 }
 
 
 function getToday() {
-
   const now = new Date();
 
-  const year =
-    now.getFullYear();
+  const year = now.getFullYear();
 
-  const month =
-    String(now.getMonth() + 1)
-      .padStart(2, "0");
+  const month = String(
+    now.getMonth() + 1
+  ).padStart(2, "0");
 
-  const day =
-    String(now.getDate())
-      .padStart(2, "0");
+  const day = String(
+    now.getDate()
+  ).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
 
 
 function formatTime(date) {
-
   if (!date) {
     return "—";
   }
 
-  return new Date(date).toLocaleTimeString(
-    "ar",
-    {
-      hour: "2-digit",
-      minute: "2-digit"
-    }
-  );
+  const parsed = new Date(date);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return "—";
+  }
+
+  return parsed.toLocaleTimeString("ar", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 
 function formatTimeForInput(date) {
-
   if (!date) {
     return "";
   }
 
-  const d =
-    new Date(date);
+  const d = new Date(date);
 
-  const pad =
-    n => String(n).padStart(2, "0");
+  if (Number.isNaN(d.getTime())) {
+    return "";
+  }
+
+  const pad = n =>
+    String(n).padStart(2, "0");
 
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 
 function buildTimestamp(date, time) {
-
   if (!date || !time) {
     return null;
   }
 
-  const parts =
-    time.split(":").map(Number);
+  const parts = time.split(":").map(Number);
 
-  const hours =
-    parts[0];
+  const hours = parts[0];
+  const minutes = parts[1];
 
-  const minutes =
-    parts[1];
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes)
+  ) {
+    return null;
+  }
 
-  const d =
-    new Date(`${date}T00:00:00`);
+  const d = new Date(
+    `${date}T00:00:00`
+  );
 
   d.setHours(
     hours,
@@ -156,9 +154,7 @@ function buildTimestamp(date, time) {
 
 
 function getMonthStart() {
-
-  const now =
-    new Date();
+  const now = new Date();
 
   return `${now.getFullYear()}-${String(
     now.getMonth() + 1
@@ -167,29 +163,19 @@ function getMonthStart() {
 
 
 function getMonthEnd() {
+  const now = new Date();
 
-  const now =
-    new Date();
+  const lastDay = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    0
+  );
 
-  const lastDay =
-    new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0
-    );
-
-  const year =
-    lastDay.getFullYear();
-
-  const month =
-    String(lastDay.getMonth() + 1)
-      .padStart(2, "0");
-
-  const day =
-    String(lastDay.getDate())
-      .padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
+  return `${lastDay.getFullYear()}-${String(
+    lastDay.getMonth() + 1
+  ).padStart(2, "0")}-${String(
+    lastDay.getDate()
+  ).padStart(2, "0")}`;
 }
 
 
@@ -199,7 +185,6 @@ function isAdmin() {
 
 
 function escapeHtml(value) {
-
   return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -209,12 +194,67 @@ function escapeHtml(value) {
 }
 
 
+function showMessage(
+  elementId,
+  text,
+  type = "danger"
+) {
+  const element = $(elementId);
+
+  if (!element) {
+    return;
+  }
+
+  element.textContent = text;
+
+  element.style.color =
+    type === "success"
+      ? "var(--success)"
+      : "var(--danger)";
+}
+
+
+/* =====================================================
+   SCREEN MANAGEMENT
+===================================================== */
+
+function showLogin() {
+  $("loginScreen")?.classList.remove("hidden");
+  $("forgotScreen")?.classList.add("hidden");
+  $("resetScreen")?.classList.add("hidden");
+  $("app")?.classList.add("hidden");
+}
+
+
+function showForgotPassword() {
+  $("loginScreen")?.classList.add("hidden");
+  $("forgotScreen")?.classList.remove("hidden");
+  $("resetScreen")?.classList.add("hidden");
+  $("app")?.classList.add("hidden");
+}
+
+
+function showResetPassword() {
+  $("loginScreen")?.classList.add("hidden");
+  $("forgotScreen")?.classList.add("hidden");
+  $("resetScreen")?.classList.remove("hidden");
+  $("app")?.classList.add("hidden");
+}
+
+
+function showApp() {
+  $("loginScreen")?.classList.add("hidden");
+  $("forgotScreen")?.classList.add("hidden");
+  $("resetScreen")?.classList.add("hidden");
+  $("app")?.classList.remove("hidden");
+}
+
+
 /* =====================================================
    PASSWORD RECOVERY
 ===================================================== */
 
 function isRecoveryUrl() {
-
   const hash =
     window.location.hash || "";
 
@@ -229,76 +269,7 @@ function isRecoveryUrl() {
 }
 
 
-function showLogin() {
-
-  $("loginScreen")
-    ?.classList.remove("hidden");
-
-  $("forgotScreen")
-    ?.classList.add("hidden");
-
-  $("resetScreen")
-    ?.classList.add("hidden");
-
-  $("app")
-    ?.classList.add("hidden");
-}
-
-
-function showForgotPassword() {
-
-  $("loginScreen")
-    ?.classList.add("hidden");
-
-  $("forgotScreen")
-    ?.classList.remove("hidden");
-
-  $("resetScreen")
-    ?.classList.add("hidden");
-
-  $("app")
-    ?.classList.add("hidden");
-}
-
-
-function showResetPassword() {
-
-  $("loginScreen")
-    ?.classList.add("hidden");
-
-  $("forgotScreen")
-    ?.classList.add("hidden");
-
-  $("resetScreen")
-    ?.classList.remove("hidden");
-
-  $("app")
-    ?.classList.add("hidden");
-}
-
-
-function showApp() {
-
-  $("loginScreen")
-    ?.classList.add("hidden");
-
-  $("forgotScreen")
-    ?.classList.add("hidden");
-
-  $("resetScreen")
-    ?.classList.add("hidden");
-
-  $("app")
-    ?.classList.remove("hidden");
-}
-
-
-/* =====================================================
-   PASSWORD RESET
-===================================================== */
-
 async function sendPasswordReset(email) {
-
   const redirectUrl =
     window.location.origin +
     window.location.pathname;
@@ -320,7 +291,6 @@ async function sendPasswordReset(email) {
 
 
 async function updatePassword(password) {
-
   const {
     data,
     error
@@ -338,7 +308,6 @@ async function updatePassword(password) {
 
 
 async function handleResetPassword(event) {
-
   event.preventDefault();
 
   const password =
@@ -354,40 +323,35 @@ async function handleResetPassword(event) {
     return;
   }
 
-  message.style.color =
-    "var(--danger)";
-
   if (password.length < 6) {
-
-    message.textContent =
-      "كلمة المرور يجب أن تكون 6 أحرف على الأقل.";
-
+    showMessage(
+      "resetMessage",
+      "كلمة المرور يجب أن تكون 6 أحرف على الأقل."
+    );
     return;
   }
 
   if (password !== confirm) {
-
-    message.textContent =
-      "كلمتا المرور غير متطابقتين.";
-
+    showMessage(
+      "resetMessage",
+      "كلمتا المرور غير متطابقتين."
+    );
     return;
   }
 
-  message.style.color =
-    "var(--success)";
-
-  message.textContent =
-    "جاري حفظ كلمة المرور...";
+  showMessage(
+    "resetMessage",
+    "جاري حفظ كلمة المرور...",
+    "success"
+  );
 
   try {
-
     const {
       data: sessionData
     } =
       await supabaseClient.auth.getSession();
 
     if (!sessionData?.session) {
-
       throw new Error(
         "انتهت جلسة استعادة كلمة المرور. اطلبي رابط استعادة جديد."
       );
@@ -395,8 +359,11 @@ async function handleResetPassword(event) {
 
     await updatePassword(password);
 
-    message.textContent =
-      "تم تغيير كلمة المرور بنجاح.";
+    showMessage(
+      "resetMessage",
+      "تم تغيير كلمة المرور بنجاح.",
+      "success"
+    );
 
     $("resetForm")?.reset();
 
@@ -412,33 +379,26 @@ async function handleResetPassword(event) {
     );
 
     setTimeout(() => {
-
       showLogin();
 
-      if ($("loginMessage")) {
-
-        $("loginMessage").style.color =
-          "var(--success)";
-
-        $("loginMessage").textContent =
-          "تم تغيير كلمة المرور. يمكنك تسجيل الدخول الآن.";
-      }
-
+      showMessage(
+        "loginMessage",
+        "تم تغيير كلمة المرور. يمكنك تسجيل الدخول الآن.",
+        "success"
+      );
     }, 500);
 
   } catch (error) {
-
     console.error(
       "PASSWORD RESET ERROR:",
       error
     );
 
-    message.style.color =
-      "var(--danger)";
-
-    message.textContent =
+    showMessage(
+      "resetMessage",
       error?.message ||
-      "تعذر تغيير كلمة المرور.";
+      "تعذر تغيير كلمة المرور."
+    );
   }
 }
 
@@ -447,8 +407,10 @@ async function handleResetPassword(event) {
    LOGIN
 ===================================================== */
 
-async function login(email, password) {
-
+async function login(
+  email,
+  password
+) {
   const {
     data,
     error
@@ -463,7 +425,6 @@ async function login(email, password) {
   }
 
   if (!data?.user) {
-
     throw new Error(
       "لم يتم العثور على حساب المستخدم."
     );
@@ -481,11 +442,8 @@ async function login(email, password) {
   await loadLeaves();
 
   if (isAdmin()) {
-
     await loadEmployees();
-
     await loadAdminAttendance();
-
     await loadAdminLeaves();
   }
 
@@ -498,9 +456,7 @@ async function login(email, password) {
 ===================================================== */
 
 async function loadProfile() {
-
   if (!currentUser) {
-
     throw new Error(
       "لم يتم العثور على المستخدم."
     );
@@ -521,7 +477,6 @@ async function loadProfile() {
   }
 
   if (!data) {
-
     throw new Error(
       "تم تسجيل الدخول، لكن لا يوجد ملف موظف مرتبط بهذا الحساب."
     );
@@ -531,7 +486,6 @@ async function loadProfile() {
     data;
 
   if ($("welcomeText")) {
-
     $("welcomeText").textContent =
       `مرحباً ${
         data.full_name || "بك"
@@ -539,7 +493,6 @@ async function loadProfile() {
   }
 
   if ($("baseSalary")) {
-
     $("baseSalary").textContent =
       formatMoney(
         data.monthly_salary
@@ -553,40 +506,35 @@ async function loadProfile() {
 ===================================================== */
 
 function setupAdminUI() {
-
-  const admin =
-    isAdmin();
+  const admin = isAdmin();
 
   [
     "adminEmployeesNav",
     "adminAttendanceNav",
     "adminLeavesNav"
   ].forEach(id => {
-
-    const element =
-      $(id);
+    const element = $(id);
 
     if (!element) {
       return;
     }
 
-    if (admin) {
-      element.classList.remove("hidden");
-    } else {
-      element.classList.add("hidden");
-    }
+    element.classList.toggle(
+      "hidden",
+      !admin
+    );
   });
 }
 
 
 /* =====================================================
-   ATTENDANCE - SECURE RPC
+   ATTENDANCE
+   الموظف يستخدم RPC فقط.
 ===================================================== */
 
 async function getTodayAttendanceForEmployee(
   employeeId = currentUser.id
 ) {
-
   const {
     data,
     error
@@ -603,7 +551,6 @@ async function getTodayAttendanceForEmployee(
       .maybeSingle();
 
   if (error) {
-
     console.error(
       "GET TODAY ATTENDANCE ERROR:",
       error
@@ -617,7 +564,6 @@ async function getTodayAttendanceForEmployee(
 
 
 async function getTodayAttendance() {
-
   return getTodayAttendanceForEmployee(
     currentUser.id
   );
@@ -625,18 +571,18 @@ async function getTodayAttendance() {
 
 
 /*
-  الموظف لا يعمل INSERT مباشرة.
-  قاعدة البيانات هي التي تسجل الوقت.
+  الموظف لا يرسل الوقت.
+  Supabase يسجل الوقت من السيرفر.
 */
 
 async function clockIn() {
-
   const {
     data,
     error
   } =
-    await supabaseClient
-      .rpc("clock_in");
+    await supabaseClient.rpc(
+      "clock_in"
+    );
 
   if (error) {
     throw error;
@@ -646,19 +592,14 @@ async function clockIn() {
 }
 
 
-/*
-  الموظف لا يعمل UPDATE مباشرة.
-  قاعدة البيانات تحسب الساعات وتغلق الدوام.
-*/
-
 async function clockOut() {
-
   const {
     data,
     error
   } =
-    await supabaseClient
-      .rpc("clock_out");
+    await supabaseClient.rpc(
+      "clock_out"
+    );
 
   if (error) {
     throw error;
@@ -669,7 +610,6 @@ async function clockOut() {
 
 
 async function handleAttendance() {
-
   const button =
     $("attendanceButton");
 
@@ -680,7 +620,6 @@ async function handleAttendance() {
   button.disabled = true;
 
   try {
-
     const attendance =
       await getTodayAttendance();
 
@@ -688,7 +627,6 @@ async function handleAttendance() {
       !attendance ||
       !attendance.clock_in
     ) {
-
       await clockIn();
 
       alert(
@@ -699,18 +637,21 @@ async function handleAttendance() {
       attendance.clock_in &&
       !attendance.clock_out
     ) {
-
       await clockOut();
 
       alert(
         "تم تسجيل الانصراف وحساب ساعات الدوام."
+      );
+
+    } else {
+      alert(
+        "تم إنهاء دوام اليوم مسبقاً."
       );
     }
 
     await loadDashboard();
 
   } catch (error) {
-
     console.error(
       "ATTENDANCE ERROR:",
       error
@@ -722,7 +663,6 @@ async function handleAttendance() {
     );
 
   } finally {
-
     button.disabled = false;
   }
 }
@@ -735,7 +675,6 @@ async function handleAttendance() {
 async function loadAttendance(
   employeeId = currentUser.id
 ) {
-
   const {
     data,
     error
@@ -749,7 +688,6 @@ async function loadAttendance(
       });
 
   if (error) {
-
     console.error(
       "LOAD ATTENDANCE ERROR:",
       error
@@ -770,13 +708,11 @@ function renderAttendance(
   records,
   element
 ) {
-
   if (!element) {
     return;
   }
 
   if (!records.length) {
-
     element.innerHTML = `
       <tr>
         <td colspan="6" class="empty-state">
@@ -790,7 +726,6 @@ function renderAttendance(
 
   element.innerHTML =
     records.map(row => {
-
       let statusText =
         "مراجعة";
 
@@ -833,7 +768,9 @@ function renderAttendance(
 
           <td>
             ${
-              Number(row.overtime_minutes || 0) > 0
+              Number(
+                row.overtime_minutes || 0
+              ) > 0
                 ? formatMinutes(
                     row.overtime_minutes
                   )
@@ -849,7 +786,6 @@ function renderAttendance(
 
         </tr>
       `;
-
     }).join("");
 }
 
@@ -859,7 +795,6 @@ function renderAttendance(
 ===================================================== */
 
 async function calculateHolidayPay() {
-
   const {
     data: holidays,
     error
@@ -872,7 +807,6 @@ async function calculateHolidayPay() {
       });
 
   if (error) {
-
     console.error(
       "HOLIDAYS ERROR:",
       error
@@ -885,7 +819,6 @@ async function calculateHolidayPay() {
   }
 
   if (!holidays?.length) {
-
     return {
       hours: 0,
       amount: 0
@@ -897,18 +830,18 @@ async function calculateHolidayPay() {
 
   const hourlyRate =
     Number(
-      currentProfile.monthly_salary || 0
+      currentProfile?.monthly_salary || 0
     ) /
     (
       (
         Number(
-          currentProfile.work_days_per_week || 6
+          currentProfile?.work_days_per_week || 6
         ) *
         52 /
         12
       ) *
       Number(
-        currentProfile.work_hours_per_day || 8
+        currentProfile?.work_hours_per_day || 8
       )
     );
 
@@ -916,7 +849,6 @@ async function calculateHolidayPay() {
   let totalHours = 0;
 
   for (const holiday of holidays) {
-
     const worked =
       attendance.find(
         row =>
@@ -927,7 +859,6 @@ async function calculateHolidayPay() {
     if (
       Number(holiday.day_number) === 1
     ) {
-
       totalHours += 8;
 
       totalAmount +=
@@ -941,7 +872,6 @@ async function calculateHolidayPay() {
       worked.clock_in &&
       worked.clock_out
     ) {
-
       const minutes =
         Number(
           worked.regular_minutes || 0
@@ -971,7 +901,6 @@ async function calculateHolidayPay() {
 ===================================================== */
 
 async function calculateDeductions() {
-
   const {
     data,
     error
@@ -983,7 +912,6 @@ async function calculateDeductions() {
       .eq("status", "approved");
 
   if (error) {
-
     console.error(
       "DEDUCTIONS ERROR:",
       error
@@ -1008,7 +936,6 @@ async function calculateDeductions() {
 ===================================================== */
 
 async function calculatePayroll() {
-
   if (!currentProfile) {
     return;
   }
@@ -1030,37 +957,31 @@ async function calculatePayroll() {
     deductions;
 
   if ($("baseSalary")) {
-
     $("baseSalary").textContent =
       formatMoney(baseSalary);
   }
 
   if ($("overtimePay")) {
-
     $("overtimePay").textContent =
       formatMoney(holiday.amount);
   }
 
   if ($("deductions")) {
-
     $("deductions").textContent =
       formatMoney(deductions);
   }
 
   if ($("totalSalary")) {
-
     $("totalSalary").textContent =
       formatMoney(expected);
   }
 
   if ($("expectedSalary")) {
-
     $("expectedSalary").textContent =
       formatMoney(expected);
   }
 
   if ($("overtimeHours")) {
-
     $("overtimeHours").textContent =
       formatMinutes(
         Math.round(
@@ -1076,7 +997,6 @@ async function calculatePayroll() {
 ===================================================== */
 
 async function loadDashboard() {
-
   if (!currentUser) {
     return;
   }
@@ -1100,7 +1020,6 @@ async function loadDashboard() {
   let totalMinutes = 0;
 
   monthRecords.forEach(row => {
-
     totalMinutes +=
       Number(
         row.regular_minutes || 0
@@ -1108,7 +1027,6 @@ async function loadDashboard() {
   });
 
   if ($("monthlyHours")) {
-
     $("monthlyHours").textContent =
       formatMinutes(totalMinutes);
   }
@@ -1117,46 +1035,61 @@ async function loadDashboard() {
     await getTodayAttendance();
 
   if (!today) {
+    if ($("todayStatus")) {
+      $("todayStatus").textContent =
+        "لم تسجل حضورك";
+    }
 
-    $("todayStatus").textContent =
-      "لم تسجل حضورك";
+    if ($("todayMessage")) {
+      $("todayMessage").textContent =
+        "اضغط على الزر لتسجيل بداية الدوام.";
+    }
 
-    $("todayMessage").textContent =
-      "اضغط على الزر لتسجيل بداية الدوام.";
-
-    $("attendanceButton").textContent =
-      "تسجيل حضور";
+    if ($("attendanceButton")) {
+      $("attendanceButton").textContent =
+        "تسجيل حضور";
+    }
 
   } else if (
     today.clock_in &&
     !today.clock_out
   ) {
+    if ($("todayStatus")) {
+      $("todayStatus").textContent =
+        "أنت على رأس العمل";
+    }
 
-    $("todayStatus").textContent =
-      "أنت على رأس العمل";
+    if ($("todayMessage")) {
+      $("todayMessage").textContent =
+        `بدأت الساعة ${
+          formatTime(today.clock_in)
+        }`;
+    }
 
-    $("todayMessage").textContent =
-      `بدأت الساعة ${
-        formatTime(today.clock_in)
-      }`;
-
-    $("attendanceButton").textContent =
-      "تسجيل انصراف";
+    if ($("attendanceButton")) {
+      $("attendanceButton").textContent =
+        "تسجيل انصراف";
+    }
 
   } else {
+    if ($("todayStatus")) {
+      $("todayStatus").textContent =
+        "انتهى دوام اليوم";
+    }
 
-    $("todayStatus").textContent =
-      "انتهى دوام اليوم";
+    if ($("todayMessage")) {
+      $("todayMessage").textContent =
+        `الحضور ${
+          formatTime(today.clock_in)
+        } • الانصراف ${
+          formatTime(today.clock_out)
+        }`;
+    }
 
-    $("todayMessage").textContent =
-      `الحضور ${
-        formatTime(today.clock_in)
-      } • الانصراف ${
-        formatTime(today.clock_out)
-      }`;
-
-    $("attendanceButton").textContent =
-      "تسجيل حضور";
+    if ($("attendanceButton")) {
+      $("attendanceButton").textContent =
+        "تسجيل حضور";
+    }
   }
 
   const hasError =
@@ -1167,7 +1100,6 @@ async function loadDashboard() {
     );
 
   if ($("attendanceAlert")) {
-
     $("attendanceAlert").textContent =
       hasError
         ? "يوجد خطأ"
@@ -1198,7 +1130,6 @@ async function loadDashboard() {
 ===================================================== */
 
 async function loadLeaves() {
-
   if (!currentUser) {
     return;
   }
@@ -1216,7 +1147,6 @@ async function loadLeaves() {
       });
 
   if (error) {
-
     console.error(
       "LEAVES ERROR:",
       error
@@ -1267,49 +1197,50 @@ async function loadLeaves() {
   }
 
   if (!leaves.length) {
-
-    $("leaveList").innerHTML =
-      "<p>لا توجد طلبات إجازة.</p>";
+    if ($("leaveList")) {
+      $("leaveList").innerHTML =
+        "<p>لا توجد طلبات إجازة.</p>";
+    }
 
     return;
   }
 
-  $("leaveList").innerHTML =
-    leaves.map(leave => {
+  if ($("leaveList")) {
+    $("leaveList").innerHTML =
+      leaves.map(leave => {
+        let status =
+          "قيد المراجعة";
 
-      let status =
-        "قيد المراجعة";
+        if (leave.status === "approved") {
+          status = "مقبولة";
+        }
 
-      if (leave.status === "approved") {
-        status = "مقبولة";
-      }
+        if (leave.status === "rejected") {
+          status = "مرفوضة";
+        }
 
-      if (leave.status === "rejected") {
-        status = "مرفوضة";
-      }
+        return `
+          <div class="leave-item">
 
-      return `
-        <div class="leave-item">
+            <strong>
+              ${escapeHtml(leave.start_date)}
+              →
+              ${escapeHtml(leave.end_date)}
+            </strong>
 
-          <strong>
-            ${escapeHtml(leave.start_date)}
-            →
-            ${escapeHtml(leave.end_date)}
-          </strong>
+            <span>
+              ${
+                Number(
+                  leave.total_days || 0
+                )
+              }
+              يوم • ${status}
+            </span>
 
-          <span>
-            ${
-              Number(
-                leave.total_days || 0
-              )
-            }
-            يوم • ${status}
-          </span>
-
-        </div>
-      `;
-
-    }).join("");
+          </div>
+        `;
+      }).join("");
+  }
 }
 
 
@@ -1318,17 +1249,23 @@ async function loadLeaves() {
 ===================================================== */
 
 async function createLeaveRequest(event) {
-
   event.preventDefault();
 
+  if (!currentUser) {
+    alert(
+      "يجب تسجيل الدخول أولاً."
+    );
+    return;
+  }
+
   const start =
-    $("leaveStart").value;
+    $("leaveStart")?.value;
 
   const end =
-    $("leaveEnd").value;
+    $("leaveEnd")?.value;
 
   const reason =
-    $("leaveReason").value.trim();
+    $("leaveReason")?.value.trim() || "";
 
   const startDate =
     new Date(`${start}T00:00:00`);
@@ -1347,13 +1284,12 @@ async function createLeaveRequest(event) {
   if (
     !start ||
     !end ||
+    Number.isNaN(days) ||
     days <= 0
   ) {
-
     alert(
       "تاريخ الإجازة غير صحيح."
     );
-
     return;
   }
 
@@ -1363,7 +1299,6 @@ async function createLeaveRequest(event) {
     await supabaseClient
       .from("leave_requests")
       .insert({
-
         employee_id:
           currentUser.id,
 
@@ -1384,15 +1319,13 @@ async function createLeaveRequest(event) {
       });
 
   if (error) {
-
     alert(
       error.message
     );
-
     return;
   }
 
-  $("leaveForm").reset();
+  $("leaveForm")?.reset();
 
   await loadLeaves();
 
@@ -1407,7 +1340,6 @@ async function createLeaveRequest(event) {
 ===================================================== */
 
 async function loadEmployees() {
-
   if (!isAdmin()) {
     return;
   }
@@ -1424,8 +1356,10 @@ async function loadEmployees() {
       });
 
   if (error) {
-
-    console.error(error);
+    console.error(
+      "LOAD EMPLOYEES ERROR:",
+      error
+    );
 
     alert(
       "تعذر تحميل الموظفين: " +
@@ -1441,8 +1375,9 @@ async function loadEmployees() {
 }
 
 
-function renderEmployees(employees) {
-
+function renderEmployees(
+  employees
+) {
   const table =
     $("employeesTable");
 
@@ -1451,7 +1386,6 @@ function renderEmployees(employees) {
   }
 
   if (!employees.length) {
-
     table.innerHTML = `
       <tr>
         <td colspan="8" class="empty-state">
@@ -1465,7 +1399,6 @@ function renderEmployees(employees) {
 
   table.innerHTML =
     employees.map(employee => {
-
       const active =
         employee.is_active !== false;
 
@@ -1515,83 +1448,92 @@ function renderEmployees(employees) {
           </td>
 
           <td>
-
             <span class="pill ${
               active
                 ? "success"
                 : "bad"
             }">
-
               ${
                 active
                   ? "نشط"
                   : "غير نشط"
               }
-
             </span>
-
           </td>
 
           <td>
-
             <button
               class="secondary-button"
               onclick="editEmployee('${employee.id}')"
             >
               تعديل
             </button>
-
           </td>
 
         </tr>
       `;
-
     }).join("");
 }
 
 
-function openEmployeeForm(employee = null) {
-
+function openEmployeeForm(
+  employee = null
+) {
   $("employeeForm")
-    .classList.remove("hidden");
+    ?.classList.remove("hidden");
 
-  $("employeeId").value =
-    employee?.id || "";
+  if ($("employeeId")) {
+    $("employeeId").value =
+      employee?.id || "";
+  }
 
-  $("employeeName").value =
-    employee?.full_name || "";
+  if ($("employeeName")) {
+    $("employeeName").value =
+      employee?.full_name || "";
+  }
 
-  $("employeeEmail").value =
-    employee?.email || "";
+  if ($("employeeEmail")) {
+    $("employeeEmail").value =
+      employee?.email || "";
+  }
 
-  $("employeeNumber").value =
-    employee?.employee_number || "";
+  if ($("employeeNumber")) {
+    $("employeeNumber").value =
+      employee?.employee_number || "";
+  }
 
-  $("employeeDepartment").value =
-    employee?.department || "";
+  if ($("employeeDepartment")) {
+    $("employeeDepartment").value =
+      employee?.department || "";
+  }
 
-  $("employeeJobTitle").value =
-    employee?.job_title || "";
+  if ($("employeeJobTitle")) {
+    $("employeeJobTitle").value =
+      employee?.job_title || "";
+  }
 
-  $("employeeSalary").value =
-    employee?.monthly_salary ?? "";
+  if ($("employeeSalary")) {
+    $("employeeSalary").value =
+      employee?.monthly_salary ?? "";
+  }
 
-  $("employeeHours").value =
-    employee?.work_hours_per_day ?? 8;
+  if ($("employeeHours")) {
+    $("employeeHours").value =
+      employee?.work_hours_per_day ?? 8;
+  }
 
-  $("employeeDays").value =
-    employee?.work_days_per_week ?? 6;
+  if ($("employeeDays")) {
+    $("employeeDays").value =
+      employee?.work_days_per_week ?? 6;
+  }
 }
 
 
 async function editEmployee(id) {
-
   if (!isAdmin()) {
-
     alert(
       "ليس لديك صلاحية."
     );
-
     return;
   }
 
@@ -1609,11 +1551,9 @@ async function editEmployee(id) {
     error ||
     !data
   ) {
-
     alert(
       "تعذر تحميل بيانات الموظف."
     );
-
     return;
   }
 
@@ -1622,96 +1562,83 @@ async function editEmployee(id) {
 
 
 async function saveEmployee(event) {
-
   event.preventDefault();
 
   if (!isAdmin()) {
-
     alert(
       "ليس لديك صلاحية."
     );
-
     return;
   }
 
   const id =
     $("employeeId")
-      .value
+      ?.value
       .trim();
 
-  const employee = {
+  if (!id) {
+    alert(
+      "إضافة حساب دخول لموظف جديد تحتاج إنشاء مستخدم Auth من جهة خادمية آمنة."
+    );
+    return;
+  }
 
+  const employee = {
     full_name:
       $("employeeName")
-        .value
+        ?.value
         .trim(),
 
     email:
       $("employeeEmail")
-        .value
+        ?.value
         .trim(),
 
     employee_number:
       $("employeeNumber")
-        .value
-        .trim() ||
-      null,
+        ?.value
+        .trim() || null,
 
     department:
       $("employeeDepartment")
-        .value
-        .trim() ||
-      null,
+        ?.value
+        .trim() || null,
 
     job_title:
       $("employeeJobTitle")
-        .value
-        .trim() ||
-      null,
+        ?.value
+        .trim() || null,
 
     monthly_salary:
       Number(
         $("employeeSalary")
-          .value || 0
+          ?.value || 0
       ),
 
     work_hours_per_day:
       Number(
         $("employeeHours")
-          .value || 8
+          ?.value || 8
       ),
 
     work_days_per_week:
       Number(
         $("employeeDays")
-          .value || 6
+          ?.value || 6
       )
   };
 
   if (!employee.full_name) {
-
     alert(
       "اكتبي اسم الموظف."
     );
-
     return;
   }
 
   if (!employee.email) {
-
     alert(
       "اكتبي بريد الموظف."
     );
-
-    return;
-  }
-
-  if (!id) {
-
-    alert(
-      "إضافة حساب دخول لموظف جديد تحتاج إنشاء مستخدم Auth من جهة خادمية آمنة."
-    );
-
     return;
   }
 
@@ -1724,8 +1651,10 @@ async function saveEmployee(event) {
       .eq("id", id);
 
   if (error) {
-
-    console.error(error);
+    console.error(
+      "SAVE EMPLOYEE ERROR:",
+      error
+    );
 
     alert(
       "تعذر حفظ بيانات الموظف: " +
@@ -1735,12 +1664,15 @@ async function saveEmployee(event) {
     return;
   }
 
-  $("employeeForm").reset();
+  $("employeeForm")
+    ?.reset();
 
-  $("employeeId").value = "";
+  if ($("employeeId")) {
+    $("employeeId").value = "";
+  }
 
   $("employeeForm")
-    .classList.add("hidden");
+    ?.classList.add("hidden");
 
   await loadEmployees();
 
@@ -1755,7 +1687,6 @@ async function saveEmployee(event) {
 ===================================================== */
 
 async function loadAdminAttendance() {
-
   if (!isAdmin()) {
     return;
   }
@@ -1778,8 +1709,10 @@ async function loadAdminAttendance() {
       });
 
   if (error) {
-
-    console.error(error);
+    console.error(
+      "ADMIN ATTENDANCE ERROR:",
+      error
+    );
 
     alert(
       "تعذر تحميل الدوام: " +
@@ -1795,8 +1728,9 @@ async function loadAdminAttendance() {
 }
 
 
-function renderAdminAttendance(records) {
-
+function renderAdminAttendance(
+  records
+) {
   const table =
     $("adminAttendanceTable");
 
@@ -1805,7 +1739,6 @@ function renderAdminAttendance(records) {
   }
 
   if (!records.length) {
-
     table.innerHTML = `
       <tr>
         <td colspan="8" class="empty-state">
@@ -1819,7 +1752,6 @@ function renderAdminAttendance(records) {
 
   table.innerHTML =
     records.map(row => {
-
       const employeeName =
         row.profiles?.full_name ||
         row.profiles?.email ||
@@ -1865,47 +1797,39 @@ function renderAdminAttendance(records) {
           </td>
 
           <td>
-
             <span class="pill">
               ${escapeHtml(
                 row.status || "—"
               )}
             </span>
-
           </td>
 
           <td>
-
             <button
               class="secondary-button"
               onclick="editAttendance('${row.id}')"
             >
               تعديل
             </button>
-
           </td>
 
         </tr>
       `;
-
     }).join("");
 }
 
 
 /* =====================================================
-   EDIT ATTENDANCE - ADMIN ONLY
+   ADMIN EDIT ATTENDANCE
 ===================================================== */
 
 async function editAttendance(
   attendanceId
 ) {
-
   if (!isAdmin()) {
-
     alert(
       "ليس لديك صلاحية."
     );
-
     return;
   }
 
@@ -1925,11 +1849,9 @@ async function editAttendance(
       .single();
 
   if (error) {
-
     alert(
       error.message
     );
-
     return;
   }
 
@@ -1953,7 +1875,9 @@ async function editAttendance(
     prompt(
       "وقت الحضور HH:MM أو اتركه فارغاً:",
       data.clock_in
-        ? formatTimeForInput(data.clock_in)
+        ? formatTimeForInput(
+            data.clock_in
+          )
         : ""
     );
 
@@ -1965,7 +1889,9 @@ async function editAttendance(
     prompt(
       "وقت الانصراف HH:MM أو اتركه فارغاً:",
       data.clock_out
-        ? formatTimeForInput(data.clock_out)
+        ? formatTimeForInput(
+            data.clock_out
+          )
         : ""
     );
 
@@ -1993,33 +1919,43 @@ async function editAttendance(
     return;
   }
 
-  const payload = {
+  const clockInTimestamp =
+    buildTimestamp(
+      newDate,
+      newClockIn
+    );
 
+  const clockOutTimestamp =
+    buildTimestamp(
+      newDate,
+      newClockOut
+    );
+
+  const payload = {
     work_date:
       newDate,
 
     clock_in:
-      buildTimestamp(
-        newDate,
-        newClockIn
-      ),
+      clockInTimestamp,
 
     clock_out:
-      buildTimestamp(
-        newDate,
-        newClockOut
-      ),
+      clockOutTimestamp,
 
     regular_minutes:
-      Number(newRegular || 0),
+      Number(
+        newRegular || 0
+      ),
 
     overtime_minutes:
-      Number(newOvertime || 0),
+      Number(
+        newOvertime || 0
+      ),
 
     status:
-      newClockIn && newClockOut
+      clockInTimestamp &&
+      clockOutTimestamp
         ? "complete"
-        : newClockIn
+        : clockInTimestamp
         ? "open"
         : "missing_clock_in",
 
@@ -2036,16 +1972,13 @@ async function editAttendance(
       .eq("id", attendanceId);
 
   if (updateError) {
-
     alert(
       updateError.message
     );
-
     return;
   }
 
   await loadAdminAttendance();
-
   await loadDashboard();
 
   alert(
@@ -2059,7 +1992,6 @@ async function editAttendance(
 ===================================================== */
 
 async function loadAdminLeaves() {
-
   if (!isAdmin()) {
     return;
   }
@@ -2082,8 +2014,10 @@ async function loadAdminLeaves() {
       });
 
   if (error) {
-
-    console.error(error);
+    console.error(
+      "ADMIN LEAVES ERROR:",
+      error
+    );
 
     alert(
       "تعذر تحميل طلبات الإجازات: " +
@@ -2099,8 +2033,9 @@ async function loadAdminLeaves() {
 }
 
 
-function renderAdminLeaves(leaves) {
-
+function renderAdminLeaves(
+  leaves
+) {
   const table =
     $("adminLeavesTable");
 
@@ -2109,7 +2044,6 @@ function renderAdminLeaves(leaves) {
   }
 
   if (!leaves.length) {
-
     table.innerHTML = `
       <tr>
         <td colspan="7" class="empty-state">
@@ -2123,7 +2057,6 @@ function renderAdminLeaves(leaves) {
 
   table.innerHTML =
     leaves.map(leave => {
-
       const employee =
         leave.profiles?.full_name ||
         leave.profiles?.email ||
@@ -2174,18 +2107,15 @@ function renderAdminLeaves(leaves) {
           </td>
 
           <td>
-
             <span class="pill">
               ${status}
             </span>
-
           </td>
 
           <td>
 
             ${
               leave.status === "pending"
-
                 ? `
                   <button
                     class="secondary-button"
@@ -2201,7 +2131,6 @@ function renderAdminLeaves(leaves) {
                     رفض
                   </button>
                 `
-
                 : "—"
             }
 
@@ -2209,7 +2138,6 @@ function renderAdminLeaves(leaves) {
 
         </tr>
       `;
-
     }).join("");
 }
 
@@ -2218,8 +2146,17 @@ async function reviewLeave(
   leaveId,
   status
 ) {
-
   if (!isAdmin()) {
+    alert(
+      "ليس لديك صلاحية."
+    );
+    return;
+  }
+
+  if (
+    status !== "approved" &&
+    status !== "rejected"
+  ) {
     return;
   }
 
@@ -2229,7 +2166,6 @@ async function reviewLeave(
     await supabaseClient
       .from("leave_requests")
       .update({
-
         status:
           status,
 
@@ -2238,16 +2174,13 @@ async function reviewLeave(
 
         reviewed_at:
           new Date().toISOString()
-
       })
       .eq("id", leaveId);
 
   if (error) {
-
     alert(
       error.message
     );
-
     return;
   }
 
@@ -2266,41 +2199,45 @@ async function reviewLeave(
 ===================================================== */
 
 function setupNavigation() {
-
   document
     .querySelectorAll(".nav-btn")
     .forEach(button => {
-
       button.addEventListener(
         "click",
         async () => {
-
           document
             .querySelectorAll(".nav-btn")
             .forEach(btn =>
-              btn.classList.remove("active")
+              btn.classList.remove(
+                "active"
+              )
             );
 
-          button.classList.add("active");
+          button.classList.add(
+            "active"
+          );
 
           document
             .querySelectorAll(".page")
             .forEach(page =>
-              page.classList.remove("active")
+              page.classList.remove(
+                "active"
+              )
             );
 
           const page =
             $(button.dataset.page);
 
           if (page) {
-            page.classList.add("active");
+            page.classList.add(
+              "active"
+            );
           }
 
           if (
             button.dataset.page ===
             "employees"
           ) {
-
             await loadEmployees();
           }
 
@@ -2308,7 +2245,6 @@ function setupNavigation() {
             button.dataset.page ===
             "adminAttendance"
           ) {
-
             await loadAdminAttendance();
           }
 
@@ -2316,7 +2252,6 @@ function setupNavigation() {
             button.dataset.page ===
             "adminLeaves"
           ) {
-
             await loadAdminLeaves();
           }
         }
@@ -2330,7 +2265,6 @@ function setupNavigation() {
 ===================================================== */
 
 async function logout() {
-
   await supabaseClient
     .auth
     .signOut();
@@ -2363,42 +2297,36 @@ function setupEvents() {
     ?.addEventListener(
       "submit",
       async event => {
-
         event.preventDefault();
 
         const email =
           $("email")
-            .value
+            ?.value
             .trim();
 
         const password =
           $("password")
-            .value;
+            ?.value || "";
 
-        const message =
-          $("loginMessage");
-
-        message.style.color =
-          "var(--danger)";
-
-        message.textContent =
-          "جاري تسجيل الدخول...";
+        showMessage(
+          "loginMessage",
+          "جاري تسجيل الدخول...",
+          "success"
+        );
 
         try {
-
           await login(
             email,
             password
           );
 
-          message.style.color =
-            "var(--success)";
-
-          message.textContent =
-            "";
+          showMessage(
+            "loginMessage",
+            "",
+            "success"
+          );
 
         } catch (error) {
-
           console.error(
             "LOGIN ERROR:",
             error
@@ -2406,32 +2334,31 @@ function setupEvents() {
 
           let errorMessage =
             error?.message ||
-            error?.error_description ||
             "حدث خطأ أثناء تسجيل الدخول.";
 
           if (
             error?.message ===
             "Invalid login credentials"
           ) {
-
             errorMessage =
               "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
           }
 
           if (
-            error?.message?.toLowerCase()
-              .includes("email not confirmed")
+            error?.message
+              ?.toLowerCase()
+              .includes(
+                "email not confirmed"
+              )
           ) {
-
             errorMessage =
               "البريد الإلكتروني للحساب غير مؤكد.";
           }
 
-          message.style.color =
-            "var(--danger)";
-
-          message.textContent =
-            errorMessage;
+          showMessage(
+            "loginMessage",
+            errorMessage
+          );
         }
       }
     );
@@ -2443,14 +2370,15 @@ function setupEvents() {
     ?.addEventListener(
       "click",
       () => {
-
         const email =
           $("email")
             ?.value
             ?.trim();
 
-        if (email) {
-
+        if (
+          email &&
+          $("forgotEmail")
+        ) {
           $("forgotEmail")
             .value =
             email;
@@ -2467,60 +2395,52 @@ function setupEvents() {
     ?.addEventListener(
       "click",
       () => {
-
         showLogin();
       }
     );
 
 
-  /* SEND RESET EMAIL */
+  /* SEND RESET */
 
   $("forgotForm")
     ?.addEventListener(
       "submit",
       async event => {
-
         event.preventDefault();
 
         const email =
           $("forgotEmail")
-            .value
+            ?.value
             .trim();
 
-        const message =
-          $("forgotMessage");
-
-        message.style.color =
-          "var(--danger)";
-
-        message.textContent =
-          "جاري إرسال الرابط...";
+        showMessage(
+          "forgotMessage",
+          "جاري إرسال الرابط...",
+          "success"
+        );
 
         try {
-
           await sendPasswordReset(
             email
           );
 
-          message.style.color =
-            "var(--success)";
-
-          message.textContent =
-            "تم إرسال رابط تغيير كلمة المرور إلى بريدك الإلكتروني.";
+          showMessage(
+            "forgotMessage",
+            "تم إرسال رابط تغيير كلمة المرور إلى بريدك الإلكتروني.",
+            "success"
+          );
 
         } catch (error) {
-
           console.error(
             "RESET EMAIL ERROR:",
             error
           );
 
-          message.style.color =
-            "var(--danger)";
-
-          message.textContent =
+          showMessage(
+            "forgotMessage",
             error?.message ||
-            "تعذر إرسال رابط الاستعادة.";
+            "تعذر إرسال رابط الاستعادة."
+          );
         }
       }
     );
@@ -2568,17 +2488,33 @@ function setupEvents() {
     ?.addEventListener(
       "click",
       () => {
-
-        $("employeeForm").reset();
-
-        $("employeeId").value = "";
-
-        $("employeeHours").value = 8;
-
-        $("employeeDays").value = 6;
+        if (!isAdmin()) {
+          alert(
+            "ليس لديك صلاحية."
+          );
+          return;
+        }
 
         $("employeeForm")
-          .classList
+          ?.reset();
+
+        if ($("employeeId")) {
+          $("employeeId").value =
+            "";
+        }
+
+        if ($("employeeHours")) {
+          $("employeeHours").value =
+            8;
+        }
+
+        if ($("employeeDays")) {
+          $("employeeDays").value =
+            6;
+        }
+
+        $("employeeForm")
+          ?.classList
           .remove("hidden");
       }
     );
@@ -2590,13 +2526,16 @@ function setupEvents() {
     ?.addEventListener(
       "click",
       () => {
+        $("employeeForm")
+          ?.reset();
 
-        $("employeeForm").reset();
-
-        $("employeeId").value = "";
+        if ($("employeeId")) {
+          $("employeeId").value =
+            "";
+        }
 
         $("employeeForm")
-          .classList
+          ?.classList
           .add("hidden");
       }
     );
@@ -2613,17 +2552,15 @@ function setupEvents() {
 
 
 /* =====================================================
-   AUTH STATE LISTENER
+   AUTH STATE
 ===================================================== */
 
 function setupAuthListener() {
-
   supabaseClient.auth.onAuthStateChange(
     async (
       event,
       session
     ) => {
-
       console.log(
         "Supabase Auth Event:",
         event
@@ -2633,7 +2570,6 @@ function setupAuthListener() {
         event ===
         "PASSWORD_RECOVERY"
       ) {
-
         recoveryMode = true;
         recoveryHandled = true;
 
@@ -2643,15 +2579,27 @@ function setupAuthListener() {
       }
 
       if (
+        event ===
+        "SIGNED_OUT"
+      ) {
+        currentUser = null;
+        currentProfile = null;
+
+        if (!recoveryMode) {
+          showLogin();
+        }
+
+        return;
+      }
+
+      if (
         recoveryMode ||
         recoveryHandled
       ) {
-
         if (
           event !==
           "SIGNED_OUT"
         ) {
-
           showResetPassword();
         }
 
@@ -2660,15 +2608,11 @@ function setupAuthListener() {
 
       if (
         event ===
-        "SIGNED_OUT"
+        "SIGNED_IN" &&
+        session?.user
       ) {
-
-        currentUser = null;
-        currentProfile = null;
-
-        showLogin();
-
-        return;
+        currentUser =
+          session.user;
       }
     }
   );
@@ -2680,7 +2624,6 @@ function setupAuthListener() {
 ===================================================== */
 
 async function handleRecoverySession() {
-
   if (!isRecoveryUrl()) {
     return false;
   }
@@ -2697,16 +2640,16 @@ async function handleRecoverySession() {
     params.get("code");
 
   if (code) {
-
     const {
       error
     } =
       await supabaseClient
         .auth
-        .exchangeCodeForSession(code);
+        .exchangeCodeForSession(
+          code
+        );
 
     if (error) {
-
       console.error(
         "RECOVERY CODE ERROR:",
         error
@@ -2714,17 +2657,10 @@ async function handleRecoverySession() {
 
       showResetPassword();
 
-      const message =
-        $("resetMessage");
-
-      if (message) {
-
-        message.style.color =
-          "var(--danger)";
-
-        message.textContent =
-          "رابط استعادة كلمة المرور غير صالح أو انتهت صلاحيته.";
-      }
+      showMessage(
+        "resetMessage",
+        "رابط استعادة كلمة المرور غير صالح أو انتهت صلاحيته."
+      );
 
       return true;
     }
@@ -2736,20 +2672,12 @@ async function handleRecoverySession() {
     await supabaseClient.auth.getSession();
 
   if (!data?.session) {
-
     showResetPassword();
 
-    const message =
-      $("resetMessage");
-
-    if (message) {
-
-      message.style.color =
-        "var(--danger)";
-
-      message.textContent =
-        "لم يتم فتح جلسة الاستعادة. اطلبي رابط تغيير كلمة المرور من جديد.";
-    }
+    showMessage(
+      "resetMessage",
+      "لم يتم فتح جلسة الاستعادة. اطلبي رابط تغيير كلمة المرور من جديد."
+    );
 
     return true;
   }
@@ -2772,8 +2700,8 @@ async function initializeApp() {
 
   setupAuthListener();
 
-  if ($("currentDate")) {
 
+  if ($("currentDate")) {
     $("currentDate").textContent =
       new Date().toLocaleDateString(
         "ar",
@@ -2786,8 +2714,8 @@ async function initializeApp() {
       );
   }
 
-  try {
 
+  try {
     const isRecovery =
       await handleRecoverySession();
 
@@ -2796,9 +2724,8 @@ async function initializeApp() {
     }
 
   } catch (error) {
-
     console.error(
-      "Recovery initialization error:",
+      "RECOVERY INITIALIZATION ERROR:",
       error
     );
 
@@ -2812,18 +2739,28 @@ async function initializeApp() {
 
 
   const {
-    data
+    data,
+    error
   } =
     await supabaseClient.auth.getSession();
+
+  if (error) {
+    console.error(
+      "GET SESSION ERROR:",
+      error
+    );
+
+    showLogin();
+
+    return;
+  }
 
 
   if (
     recoveryMode ||
     recoveryHandled
   ) {
-
     showResetPassword();
-
     return;
   }
 
@@ -2844,7 +2781,6 @@ async function initializeApp() {
       await loadLeaves();
 
       if (isAdmin()) {
-
         await loadEmployees();
 
         await loadAdminAttendance();
@@ -2870,19 +2806,14 @@ async function initializeApp() {
 
       showLogin();
 
-      if ($("loginMessage")) {
-
-        $("loginMessage").style.color =
-          "var(--danger)";
-
-        $("loginMessage").textContent =
-          error?.message ||
-          "تعذر تحميل بيانات الحساب.";
-      }
+      showMessage(
+        "loginMessage",
+        error?.message ||
+        "تعذر تحميل بيانات الحساب."
+      );
     }
 
   } else {
-
     showLogin();
   }
 }
@@ -2907,4 +2838,3 @@ window.reviewLeave =
 ===================================================== */
 
 initializeApp();
-```
