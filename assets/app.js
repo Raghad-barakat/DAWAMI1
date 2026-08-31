@@ -1,4 +1,3 @@
-```javascript
 /* =====================================================
    DAWAMI1
    Employee Attendance & Payroll System
@@ -22,12 +21,10 @@ if (
   throw new Error("مكتبة Supabase لم يتم تحميلها.");
 }
 
-const supabaseClient =
-  window.supabase.createClient(
-    config.SUPABASE_URL,
-    config.SUPABASE_KEY
-  );
-
+const supabaseClient = window.supabase.createClient(
+  config.SUPABASE_URL,
+  config.SUPABASE_KEY
+);
 
 let currentUser = null;
 let currentProfile = null;
@@ -46,56 +43,44 @@ function $(id) {
 
 
 function formatMoney(amount) {
-  return "₪" +
-    Number(amount || 0).toLocaleString(
-      "en-US",
-      {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      }
-    );
+  return "₪" + Number(amount || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  });
 }
 
 
 function formatMinutes(minutes) {
-
   minutes = Math.max(
     0,
-    Math.round(
-      Number(minutes || 0)
-    )
+    Math.round(Number(minutes || 0))
   );
 
-  const hours =
-    Math.floor(minutes / 60);
-
-  const mins =
-    minutes % 60;
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
 
   return `${hours}:${String(mins).padStart(2, "0")}`;
 }
 
 
 function getToday() {
-
   const now = new Date();
 
   const year = now.getFullYear();
 
-  const month =
-    String(now.getMonth() + 1)
-      .padStart(2, "0");
+  const month = String(
+    now.getMonth() + 1
+  ).padStart(2, "0");
 
-  const day =
-    String(now.getDate())
-      .padStart(2, "0");
+  const day = String(
+    now.getDate()
+  ).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
 
 
 function formatTime(date) {
-
   if (!date) {
     return "—";
   }
@@ -111,7 +96,6 @@ function formatTime(date) {
 
 
 function formatTimeForInput(date) {
-
   if (!date) {
     return "";
   }
@@ -126,19 +110,16 @@ function formatTimeForInput(date) {
 
 
 function buildTimestamp(date, time) {
-
   if (!date || !time) {
     return null;
   }
 
-  const parts =
-    time.split(":").map(Number);
+  const parts = time.split(":").map(Number);
 
   const hours = parts[0];
   const minutes = parts[1];
 
-  const d =
-    new Date(`${date}T00:00:00`);
+  const d = new Date(`${date}T00:00:00`);
 
   d.setHours(
     hours,
@@ -152,7 +133,6 @@ function buildTimestamp(date, time) {
 
 
 function getMonthStart() {
-
   const now = new Date();
 
   return `${now.getFullYear()}-${String(
@@ -162,26 +142,23 @@ function getMonthStart() {
 
 
 function getMonthEnd() {
-
   const now = new Date();
 
-  const lastDay =
-    new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0
-    );
+  const lastDay = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    0
+  );
 
-  const year =
-    lastDay.getFullYear();
+  const year = lastDay.getFullYear();
 
-  const month =
-    String(lastDay.getMonth() + 1)
-      .padStart(2, "0");
+  const month = String(
+    lastDay.getMonth() + 1
+  ).padStart(2, "0");
 
-  const day =
-    String(lastDay.getDate())
-      .padStart(2, "0");
+  const day = String(
+    lastDay.getDate()
+  ).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
@@ -193,7 +170,6 @@ function isAdmin() {
 
 
 function escapeHtml(value) {
-
   return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -208,12 +184,8 @@ function escapeHtml(value) {
 ===================================================== */
 
 function isRecoveryUrl() {
-
-  const hash =
-    window.location.hash || "";
-
-  const search =
-    window.location.search || "";
+  const hash = window.location.hash || "";
+  const search = window.location.search || "";
 
   return (
     hash.includes("type=recovery") ||
@@ -228,66 +200,34 @@ function isRecoveryUrl() {
 ===================================================== */
 
 function showLogin() {
-
-  $("loginScreen")
-    ?.classList.remove("hidden");
-
-  $("forgotScreen")
-    ?.classList.add("hidden");
-
-  $("resetScreen")
-    ?.classList.add("hidden");
-
-  $("app")
-    ?.classList.add("hidden");
+  $("loginScreen")?.classList.remove("hidden");
+  $("forgotScreen")?.classList.add("hidden");
+  $("resetScreen")?.classList.add("hidden");
+  $("app")?.classList.add("hidden");
 }
 
 
 function showForgotPassword() {
-
-  $("loginScreen")
-    ?.classList.add("hidden");
-
-  $("forgotScreen")
-    ?.classList.remove("hidden");
-
-  $("resetScreen")
-    ?.classList.add("hidden");
-
-  $("app")
-    ?.classList.add("hidden");
+  $("loginScreen")?.classList.add("hidden");
+  $("forgotScreen")?.classList.remove("hidden");
+  $("resetScreen")?.classList.add("hidden");
+  $("app")?.classList.add("hidden");
 }
 
 
 function showResetPassword() {
-
-  $("loginScreen")
-    ?.classList.add("hidden");
-
-  $("forgotScreen")
-    ?.classList.add("hidden");
-
-  $("resetScreen")
-    ?.classList.remove("hidden");
-
-  $("app")
-    ?.classList.add("hidden");
+  $("loginScreen")?.classList.add("hidden");
+  $("forgotScreen")?.classList.add("hidden");
+  $("resetScreen")?.classList.remove("hidden");
+  $("app")?.classList.add("hidden");
 }
 
 
 function showApp() {
-
-  $("loginScreen")
-    ?.classList.add("hidden");
-
-  $("forgotScreen")
-    ?.classList.add("hidden");
-
-  $("resetScreen")
-    ?.classList.add("hidden");
-
-  $("app")
-    ?.classList.remove("hidden");
+  $("loginScreen")?.classList.add("hidden");
+  $("forgotScreen")?.classList.add("hidden");
+  $("resetScreen")?.classList.add("hidden");
+  $("app")?.classList.remove("hidden");
 }
 
 
@@ -296,14 +236,11 @@ function showApp() {
 ===================================================== */
 
 async function sendPasswordReset(email) {
-
   const redirectUrl =
     window.location.origin +
     window.location.pathname;
 
-  const {
-    error
-  } =
+  const { error } =
     await supabaseClient.auth.resetPasswordForEmail(
       email,
       {
@@ -318,13 +255,9 @@ async function sendPasswordReset(email) {
 
 
 async function updatePassword(password) {
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabaseClient.auth.updateUser({
-      password
+      password: password
     });
 
   if (error) {
@@ -336,7 +269,6 @@ async function updatePassword(password) {
 
 
 async function handleResetPassword(event) {
-
   event.preventDefault();
 
   const password =
@@ -356,18 +288,14 @@ async function handleResetPassword(event) {
     "var(--danger)";
 
   if (password.length < 6) {
-
     message.textContent =
       "كلمة المرور يجب أن تكون 6 أحرف على الأقل.";
-
     return;
   }
 
   if (password !== confirm) {
-
     message.textContent =
       "كلمتا المرور غير متطابقتين.";
-
     return;
   }
 
@@ -378,19 +306,10 @@ async function handleResetPassword(event) {
     "جاري حفظ كلمة المرور...";
 
   try {
-
-    /*
-      التأكد أن هناك جلسة مستخدم
-      قبل محاولة تغيير كلمة المرور.
-    */
-
-    const {
-      data: sessionData
-    } =
+    const { data: sessionData } =
       await supabaseClient.auth.getSession();
 
     if (!sessionData?.session) {
-
       throw new Error(
         "انتهت جلسة استعادة كلمة المرور. اطلبي رابط استعادة جديد من صفحة تسجيل الدخول."
       );
@@ -406,15 +325,7 @@ async function handleResetPassword(event) {
     recoveryMode = false;
     recoveryHandled = true;
 
-    /*
-      إنهاء جلسة الاستعادة.
-    */
-
     await supabaseClient.auth.signOut();
-
-    /*
-      إزالة code/hash من الرابط.
-    */
 
     window.history.replaceState(
       {},
@@ -423,22 +334,18 @@ async function handleResetPassword(event) {
     );
 
     setTimeout(() => {
-
       showLogin();
 
       if ($("loginMessage")) {
-
         $("loginMessage").style.color =
           "var(--success)";
 
         $("loginMessage").textContent =
           "تم تغيير كلمة المرور. يمكنك تسجيل الدخول الآن.";
       }
-
     }, 500);
 
   } catch (error) {
-
     console.error(
       "PASSWORD RESET ERROR:",
       error
@@ -459,22 +366,13 @@ async function handleResetPassword(event) {
 ===================================================== */
 
 async function login(email, password) {
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabaseClient.auth.signInWithPassword({
-      email,
-      password
+      email: email,
+      password: password
     });
 
-  /*
-    لا نخفي رسالة Supabase الحقيقية.
-  */
-
   if (error) {
-
     console.error(
       "SUPABASE LOGIN ERROR:",
       error
@@ -484,14 +382,12 @@ async function login(email, password) {
   }
 
   if (!data?.user) {
-
     throw new Error(
       "لم يتم العثور على حساب المستخدم بعد تسجيل الدخول."
     );
   }
 
-  currentUser =
-    data.user;
+  currentUser = data.user;
 
   await loadProfile();
 
@@ -502,11 +398,8 @@ async function login(email, password) {
   await loadLeaves();
 
   if (isAdmin()) {
-
     await loadEmployees();
-
     await loadAdminAttendance();
-
     await loadAdminLeaves();
   }
 
@@ -519,18 +412,13 @@ async function login(email, password) {
 ===================================================== */
 
 async function loadProfile() {
-
   if (!currentUser) {
-
     throw new Error(
       "لم يتم العثور على المستخدم."
     );
   }
 
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabaseClient
       .from("profiles")
       .select("*")
@@ -542,29 +430,21 @@ async function loadProfile() {
   }
 
   if (!data) {
-
     throw new Error(
       "تم تسجيل الدخول، لكن لا يوجد ملف موظف مرتبط بهذا الحساب في جدول profiles."
     );
   }
 
-  currentProfile =
-    data;
+  currentProfile = data;
 
   if ($("welcomeText")) {
-
     $("welcomeText").textContent =
-      `مرحباً ${
-        data.full_name || "بك"
-      }`;
+      `مرحباً ${data.full_name || "بك"}`;
   }
 
   if ($("baseSalary")) {
-
     $("baseSalary").textContent =
-      formatMoney(
-        data.monthly_salary
-      );
+      formatMoney(data.monthly_salary);
   }
 }
 
@@ -574,16 +454,13 @@ async function loadProfile() {
 ===================================================== */
 
 function setupAdminUI() {
-
-  const admin =
-    isAdmin();
+  const admin = isAdmin();
 
   [
     "adminEmployeesNav",
     "adminAttendanceNav",
     "adminLeavesNav"
   ].forEach(id => {
-
     const element = $(id);
 
     if (!element) {
@@ -591,11 +468,8 @@ function setupAdminUI() {
     }
 
     if (admin) {
-
       element.classList.remove("hidden");
-
     } else {
-
       element.classList.add("hidden");
     }
   });
@@ -609,11 +483,7 @@ function setupAdminUI() {
 async function getTodayAttendanceForEmployee(
   employeeId = currentUser.id
 ) {
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabaseClient
       .from("attendance")
       .select("*")
@@ -626,9 +496,7 @@ async function getTodayAttendanceForEmployee(
       .maybeSingle();
 
   if (error) {
-
     console.error(error);
-
     return null;
   }
 
@@ -637,7 +505,6 @@ async function getTodayAttendanceForEmployee(
 
 
 async function getTodayAttendance() {
-
   return getTodayAttendanceForEmployee(
     currentUser.id
   );
@@ -645,7 +512,6 @@ async function getTodayAttendance() {
 
 
 async function clockIn() {
-
   const existing =
     await getTodayAttendance();
 
@@ -660,36 +526,18 @@ async function clockIn() {
   const now =
     new Date().toISOString();
 
-  const {
-    error
-  } =
+  const { error } =
     await supabaseClient
       .from("attendance")
       .insert({
-
-        employee_id:
-          currentUser.id,
-
-        work_date:
-          getToday(),
-
-        clock_in:
-          now,
-
-        clock_out:
-          null,
-
-        regular_minutes:
-          0,
-
-        overtime_minutes:
-          0,
-
-        late_minutes:
-          0,
-
-        status:
-          "open"
+        employee_id: currentUser.id,
+        work_date: getToday(),
+        clock_in: now,
+        clock_out: null,
+        regular_minutes: 0,
+        overtime_minutes: 0,
+        late_minutes: 0,
+        status: "open"
       });
 
   if (error) {
@@ -699,7 +547,6 @@ async function clockIn() {
 
 
 async function clockOut() {
-
   const attendance =
     await getTodayAttendance();
 
@@ -712,9 +559,7 @@ async function clockOut() {
   }
 
   const clockInTime =
-    new Date(
-      attendance.clock_in
-    );
+    new Date(attendance.clock_in);
 
   const clockOutTime =
     new Date();
@@ -723,17 +568,14 @@ async function clockOut() {
     Math.max(
       0,
       Math.round(
-        (
-          clockOutTime -
-          clockInTime
-        ) / 60000
+        (clockOutTime - clockInTime) /
+        60000
       )
     );
 
   const standardHours =
     Number(
-      currentProfile.work_hours_per_day ||
-      8
+      currentProfile.work_hours_per_day || 8
     );
 
   const standardMinutes =
@@ -748,17 +590,13 @@ async function clockOut() {
   const overtimeMinutes =
     Math.max(
       0,
-      totalMinutes -
-      standardMinutes
+      totalMinutes - standardMinutes
     );
 
-  const {
-    error
-  } =
+  const { error } =
     await supabaseClient
       .from("attendance")
       .update({
-
         clock_out:
           clockOutTime.toISOString(),
 
@@ -783,7 +621,6 @@ async function clockOut() {
 
 
 async function handleAttendance() {
-
   const button =
     $("attendanceButton");
 
@@ -794,7 +631,6 @@ async function handleAttendance() {
   button.disabled = true;
 
   try {
-
     const attendance =
       await getTodayAttendance();
 
@@ -802,21 +638,18 @@ async function handleAttendance() {
       !attendance ||
       !attendance.clock_in
     ) {
-
       await clockIn();
 
     } else if (
       attendance.clock_in &&
       !attendance.clock_out
     ) {
-
       await clockOut();
     }
 
     await loadDashboard();
 
   } catch (error) {
-
     console.error(error);
 
     alert(
@@ -825,7 +658,6 @@ async function handleAttendance() {
     );
 
   } finally {
-
     button.disabled = false;
   }
 }
@@ -838,11 +670,7 @@ async function handleAttendance() {
 async function loadAttendance(
   employeeId = currentUser.id
 ) {
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabaseClient
       .from("attendance")
       .select("*")
@@ -852,9 +680,7 @@ async function loadAttendance(
       });
 
   if (error) {
-
     console.error(error);
-
     return [];
   }
 
@@ -867,13 +693,11 @@ async function loadAttendance(
 ===================================================== */
 
 function renderAttendance(records, element) {
-
   if (!element) {
     return;
   }
 
   if (!records.length) {
-
     element.innerHTML = `
       <tr>
         <td colspan="6" class="empty-state">
@@ -887,9 +711,7 @@ function renderAttendance(records, element) {
 
   element.innerHTML =
     records.map(row => {
-
-      let statusText =
-        "مراجعة";
+      let statusText = "مراجعة";
 
       if (row.status === "complete") {
         statusText = "مكتمل";
@@ -946,7 +768,6 @@ function renderAttendance(records, element) {
 
         </tr>
       `;
-
     }).join("");
 }
 
@@ -956,11 +777,7 @@ function renderAttendance(records, element) {
 ===================================================== */
 
 async function calculateHolidayPay() {
-
-  const {
-    data: holidays,
-    error
-  } =
+  const { data: holidays, error } =
     await supabaseClient
       .from("holidays")
       .select("*")
@@ -969,7 +786,6 @@ async function calculateHolidayPay() {
       });
 
   if (error) {
-
     console.error(error);
 
     return {
@@ -979,7 +795,6 @@ async function calculateHolidayPay() {
   }
 
   if (!holidays?.length) {
-
     return {
       hours: 0,
       amount: 0
@@ -1010,7 +825,6 @@ async function calculateHolidayPay() {
   let totalHours = 0;
 
   for (const holiday of holidays) {
-
     const worked =
       attendance.find(
         row =>
@@ -1021,12 +835,8 @@ async function calculateHolidayPay() {
     if (
       Number(holiday.day_number) === 1
     ) {
-
       totalHours += 8;
-
-      totalAmount +=
-        8 * hourlyRate;
-
+      totalAmount += 8 * hourlyRate;
       continue;
     }
 
@@ -1035,7 +845,6 @@ async function calculateHolidayPay() {
       worked.clock_in &&
       worked.clock_out
     ) {
-
       const minutes =
         Number(
           worked.regular_minutes || 0
@@ -1065,11 +874,7 @@ async function calculateHolidayPay() {
 ===================================================== */
 
 async function calculateDeductions() {
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabaseClient
       .from("deductions")
       .select("amount")
@@ -1077,15 +882,11 @@ async function calculateDeductions() {
       .eq("status", "approved");
 
   if (error) {
-
     console.error(error);
-
     return 0;
   }
 
-  return (
-    data || []
-  ).reduce(
+  return (data || []).reduce(
     (sum, item) =>
       sum +
       Number(item.amount || 0),
@@ -1099,7 +900,6 @@ async function calculateDeductions() {
 ===================================================== */
 
 async function calculatePayroll() {
-
   if (!currentProfile) {
     return;
   }
@@ -1121,37 +921,31 @@ async function calculatePayroll() {
     deductions;
 
   if ($("baseSalary")) {
-
     $("baseSalary").textContent =
       formatMoney(baseSalary);
   }
 
   if ($("overtimePay")) {
-
     $("overtimePay").textContent =
       formatMoney(holiday.amount);
   }
 
   if ($("deductions")) {
-
     $("deductions").textContent =
       formatMoney(deductions);
   }
 
   if ($("totalSalary")) {
-
     $("totalSalary").textContent =
       formatMoney(expected);
   }
 
   if ($("expectedSalary")) {
-
     $("expectedSalary").textContent =
       formatMoney(expected);
   }
 
   if ($("overtimeHours")) {
-
     $("overtimeHours").textContent =
       formatMinutes(
         Math.round(
@@ -1167,7 +961,6 @@ async function calculatePayroll() {
 ===================================================== */
 
 async function loadDashboard() {
-
   if (!currentUser) {
     return;
   }
@@ -1191,7 +984,6 @@ async function loadDashboard() {
   let totalMinutes = 0;
 
   monthRecords.forEach(row => {
-
     totalMinutes +=
       Number(
         row.regular_minutes || 0
@@ -1199,7 +991,6 @@ async function loadDashboard() {
   });
 
   if ($("monthlyHours")) {
-
     $("monthlyHours").textContent =
       formatMinutes(totalMinutes);
   }
@@ -1208,46 +999,63 @@ async function loadDashboard() {
     await getTodayAttendance();
 
   if (!today) {
+    if ($("todayStatus")) {
+      $("todayStatus").textContent =
+        "لم تسجل حضورك";
+    }
 
-    $("todayStatus").textContent =
-      "لم تسجل حضورك";
+    if ($("todayMessage")) {
+      $("todayMessage").textContent =
+        "اضغط على الزر لتسجيل بداية الدوام.";
+    }
 
-    $("todayMessage").textContent =
-      "اضغط على الزر لتسجيل بداية الدوام.";
-
-    $("attendanceButton").textContent =
-      "تسجيل حضور";
+    if ($("attendanceButton")) {
+      $("attendanceButton").textContent =
+        "تسجيل حضور";
+    }
 
   } else if (
     today.clock_in &&
     !today.clock_out
   ) {
 
-    $("todayStatus").textContent =
-      "أنت على رأس العمل";
+    if ($("todayStatus")) {
+      $("todayStatus").textContent =
+        "أنت على رأس العمل";
+    }
 
-    $("todayMessage").textContent =
-      `بدأت الساعة ${
-        formatTime(today.clock_in)
-      }`;
+    if ($("todayMessage")) {
+      $("todayMessage").textContent =
+        `بدأت الساعة ${formatTime(
+          today.clock_in
+        )}`;
+    }
 
-    $("attendanceButton").textContent =
-      "تسجيل انصراف";
+    if ($("attendanceButton")) {
+      $("attendanceButton").textContent =
+        "تسجيل انصراف";
+    }
 
   } else {
 
-    $("todayStatus").textContent =
-      "انتهى دوام اليوم";
+    if ($("todayStatus")) {
+      $("todayStatus").textContent =
+        "انتهى دوام اليوم";
+    }
 
-    $("todayMessage").textContent =
-      `الحضور ${
-        formatTime(today.clock_in)
-      } • الانصراف ${
-        formatTime(today.clock_out)
-      }`;
+    if ($("todayMessage")) {
+      $("todayMessage").textContent =
+        `الحضور ${formatTime(
+          today.clock_in
+        )} • الانصراف ${formatTime(
+          today.clock_out
+        )}`;
+    }
 
-    $("attendanceButton").textContent =
-      "تسجيل حضور";
+    if ($("attendanceButton")) {
+      $("attendanceButton").textContent =
+        "تسجيل حضور";
+    }
   }
 
   const hasError =
@@ -1258,7 +1066,6 @@ async function loadDashboard() {
     );
 
   if ($("attendanceAlert")) {
-
     $("attendanceAlert").textContent =
       hasError
         ? "يوجد خطأ"
@@ -1289,15 +1096,11 @@ async function loadDashboard() {
 ===================================================== */
 
 async function loadLeaves() {
-
   if (!currentUser) {
     return;
   }
 
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabaseClient
       .from("leave_requests")
       .select("*")
@@ -1307,14 +1110,11 @@ async function loadLeaves() {
       });
 
   if (error) {
-
     console.error(error);
-
     return;
   }
 
-  const leaves =
-    data || [];
+  const leaves = data || [];
 
   const used =
     leaves
@@ -1355,49 +1155,48 @@ async function loadLeaves() {
   }
 
   if (!leaves.length) {
-
-    $("leaveList").innerHTML =
-      "<p>لا توجد طلبات إجازة.</p>";
+    if ($("leaveList")) {
+      $("leaveList").innerHTML =
+        "<p>لا توجد طلبات إجازة.</p>";
+    }
 
     return;
   }
 
-  $("leaveList").innerHTML =
-    leaves.map(leave => {
+  if ($("leaveList")) {
+    $("leaveList").innerHTML =
+      leaves.map(leave => {
+        let status =
+          "قيد المراجعة";
 
-      let status =
-        "قيد المراجعة";
+        if (leave.status === "approved") {
+          status = "مقبولة";
+        }
 
-      if (leave.status === "approved") {
-        status = "مقبولة";
-      }
+        if (leave.status === "rejected") {
+          status = "مرفوضة";
+        }
 
-      if (leave.status === "rejected") {
-        status = "مرفوضة";
-      }
+        return `
+          <div class="leave-item">
 
-      return `
-        <div class="leave-item">
+            <strong>
+              ${escapeHtml(leave.start_date)}
+              →
+              ${escapeHtml(leave.end_date)}
+            </strong>
 
-          <strong>
-            ${escapeHtml(leave.start_date)}
-            →
-            ${escapeHtml(leave.end_date)}
-          </strong>
-
-          <span>
-            ${
-              Number(
+            <span>
+              ${Number(
                 leave.total_days || 0
-              )
-            }
-            يوم • ${status}
-          </span>
+              )}
+              يوم • ${status}
+            </span>
 
-        </div>
-      `;
-
-    }).join("");
+          </div>
+        `;
+      }).join("");
+  }
 }
 
 
@@ -1406,7 +1205,6 @@ async function loadLeaves() {
 ===================================================== */
 
 async function createLeaveRequest(event) {
-
   event.preventDefault();
 
   const start =
@@ -1426,10 +1224,8 @@ async function createLeaveRequest(event) {
 
   const days =
     Math.round(
-      (
-        endDate -
-        startDate
-      ) / 86400000
+      (endDate - startDate) /
+      86400000
     ) + 1;
 
   if (
@@ -1437,7 +1233,6 @@ async function createLeaveRequest(event) {
     !end ||
     days <= 0
   ) {
-
     alert(
       "تاريخ الإجازة غير صحيح."
     );
@@ -1445,13 +1240,10 @@ async function createLeaveRequest(event) {
     return;
   }
 
-  const {
-    error
-  } =
+  const { error } =
     await supabaseClient
       .from("leave_requests")
       .insert({
-
         employee_id:
           currentUser.id,
 
@@ -1472,7 +1264,6 @@ async function createLeaveRequest(event) {
       });
 
   if (error) {
-
     alert(
       error.message
     );
@@ -1495,15 +1286,11 @@ async function createLeaveRequest(event) {
 ===================================================== */
 
 async function loadEmployees() {
-
   if (!isAdmin()) {
     return;
   }
 
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabaseClient
       .from("profiles")
       .select("*")
@@ -1512,7 +1299,6 @@ async function loadEmployees() {
       });
 
   if (error) {
-
     console.error(error);
 
     alert(
@@ -1530,7 +1316,6 @@ async function loadEmployees() {
 
 
 function renderEmployees(employees) {
-
   const table =
     $("employeesTable");
 
@@ -1539,7 +1324,6 @@ function renderEmployees(employees) {
   }
 
   if (!employees.length) {
-
     table.innerHTML = `
       <tr>
         <td colspan="8" class="empty-state">
@@ -1553,7 +1337,6 @@ function renderEmployees(employees) {
 
   table.innerHTML =
     employees.map(employee => {
-
       const active =
         employee.is_active !== false;
 
@@ -1587,19 +1370,15 @@ function renderEmployees(employees) {
           </td>
 
           <td>
-            ${
-              Number(
-                employee.work_hours_per_day || 8
-              )
-            }
+            ${Number(
+              employee.work_hours_per_day || 8
+            )}
           </td>
 
           <td>
-            ${
-              Number(
-                employee.work_days_per_week || 6
-              )
-            }
+            ${Number(
+              employee.work_days_per_week || 6
+            )}
           </td>
 
           <td>
@@ -1633,15 +1412,14 @@ function renderEmployees(employees) {
 
         </tr>
       `;
-
     }).join("");
 }
 
 
 function openEmployeeForm(employee = null) {
-
   $("employeeForm")
-    .classList.remove("hidden");
+    .classList
+    .remove("hidden");
 
   $("employeeId").value =
     employee?.id || "";
@@ -1673,9 +1451,7 @@ function openEmployeeForm(employee = null) {
 
 
 async function editEmployee(id) {
-
   if (!isAdmin()) {
-
     alert(
       "ليس لديك صلاحية."
     );
@@ -1683,21 +1459,14 @@ async function editEmployee(id) {
     return;
   }
 
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabaseClient
       .from("profiles")
       .select("*")
       .eq("id", id)
       .maybeSingle();
 
-  if (
-    error ||
-    !data
-  ) {
-
+  if (error || !data) {
     alert(
       "تعذر تحميل بيانات الموظف."
     );
@@ -1710,11 +1479,9 @@ async function editEmployee(id) {
 
 
 async function saveEmployee(event) {
-
   event.preventDefault();
 
   if (!isAdmin()) {
-
     alert(
       "ليس لديك صلاحية."
     );
@@ -1728,7 +1495,6 @@ async function saveEmployee(event) {
       .trim();
 
   const employee = {
-
     full_name:
       $("employeeName")
         .value
@@ -1742,20 +1508,17 @@ async function saveEmployee(event) {
     employee_number:
       $("employeeNumber")
         .value
-        .trim() ||
-      null,
+        .trim() || null,
 
     department:
       $("employeeDepartment")
         .value
-        .trim() ||
-      null,
+        .trim() || null,
 
     job_title:
       $("employeeJobTitle")
         .value
-        .trim() ||
-      null,
+        .trim() || null,
 
     monthly_salary:
       Number(
@@ -1777,7 +1540,6 @@ async function saveEmployee(event) {
   };
 
   if (!employee.full_name) {
-
     alert(
       "اكتبي اسم الموظف."
     );
@@ -1786,7 +1548,6 @@ async function saveEmployee(event) {
   }
 
   if (!employee.email) {
-
     alert(
       "اكتبي بريد الموظف."
     );
@@ -1795,7 +1556,6 @@ async function saveEmployee(event) {
   }
 
   if (!id) {
-
     alert(
       "إضافة حساب دخول لموظف جديد تحتاج إنشاء مستخدم Auth من جهة خادمية آمنة."
     );
@@ -1803,16 +1563,13 @@ async function saveEmployee(event) {
     return;
   }
 
-  const {
-    error
-  } =
+  const { error } =
     await supabaseClient
       .from("profiles")
       .update(employee)
       .eq("id", id);
 
   if (error) {
-
     console.error(error);
 
     alert(
@@ -1828,7 +1585,8 @@ async function saveEmployee(event) {
   $("employeeId").value = "";
 
   $("employeeForm")
-    .classList.add("hidden");
+    .classList
+    .add("hidden");
 
   await loadEmployees();
 
@@ -1843,15 +1601,11 @@ async function saveEmployee(event) {
 ===================================================== */
 
 async function loadAdminAttendance() {
-
   if (!isAdmin()) {
     return;
   }
 
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabaseClient
       .from("attendance")
       .select(`
@@ -1866,7 +1620,6 @@ async function loadAdminAttendance() {
       });
 
   if (error) {
-
     console.error(error);
 
     alert(
@@ -1884,7 +1637,6 @@ async function loadAdminAttendance() {
 
 
 function renderAdminAttendance(records) {
-
   const table =
     $("adminAttendanceTable");
 
@@ -1893,7 +1645,6 @@ function renderAdminAttendance(records) {
   }
 
   if (!records.length) {
-
     table.innerHTML = `
       <tr>
         <td colspan="8" class="empty-state">
@@ -1907,7 +1658,6 @@ function renderAdminAttendance(records) {
 
   table.innerHTML =
     records.map(row => {
-
       const employeeName =
         row.profiles?.full_name ||
         row.profiles?.email ||
@@ -1975,7 +1725,6 @@ function renderAdminAttendance(records) {
 
         </tr>
       `;
-
     }).join("");
 }
 
@@ -1985,9 +1734,7 @@ function renderAdminAttendance(records) {
 ===================================================== */
 
 async function editAttendance(attendanceId) {
-
   if (!isAdmin()) {
-
     alert(
       "ليس لديك صلاحية."
     );
@@ -1995,10 +1742,7 @@ async function editAttendance(attendanceId) {
     return;
   }
 
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabaseClient
       .from("attendance")
       .select(`
@@ -2011,7 +1755,6 @@ async function editAttendance(attendanceId) {
       .single();
 
   if (error) {
-
     alert(
       error.message
     );
@@ -2080,7 +1823,6 @@ async function editAttendance(attendanceId) {
   }
 
   const payload = {
-
     work_date:
       newDate,
 
@@ -2113,16 +1855,13 @@ async function editAttendance(attendanceId) {
       new Date().toISOString()
   };
 
-  const {
-    error: updateError
-  } =
+  const { error: updateError } =
     await supabaseClient
       .from("attendance")
       .update(payload)
       .eq("id", attendanceId);
 
   if (updateError) {
-
     alert(
       updateError.message
     );
@@ -2145,15 +1884,11 @@ async function editAttendance(attendanceId) {
 ===================================================== */
 
 async function loadAdminLeaves() {
-
   if (!isAdmin()) {
     return;
   }
 
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabaseClient
       .from("leave_requests")
       .select(`
@@ -2168,7 +1903,6 @@ async function loadAdminLeaves() {
       });
 
   if (error) {
-
     console.error(error);
 
     alert(
@@ -2186,7 +1920,6 @@ async function loadAdminLeaves() {
 
 
 function renderAdminLeaves(leaves) {
-
   const table =
     $("adminLeavesTable");
 
@@ -2195,7 +1928,6 @@ function renderAdminLeaves(leaves) {
   }
 
   if (!leaves.length) {
-
     table.innerHTML = `
       <tr>
         <td colspan="7" class="empty-state">
@@ -2209,7 +1941,6 @@ function renderAdminLeaves(leaves) {
 
   table.innerHTML =
     leaves.map(leave => {
-
       const employee =
         leave.profiles?.full_name ||
         leave.profiles?.email ||
@@ -2246,11 +1977,9 @@ function renderAdminLeaves(leaves) {
           </td>
 
           <td>
-            ${
-              Number(
-                leave.total_days || 0
-              )
-            }
+            ${Number(
+              leave.total_days || 0
+            )}
           </td>
 
           <td>
@@ -2271,7 +2000,6 @@ function renderAdminLeaves(leaves) {
 
             ${
               leave.status === "pending"
-
                 ? `
                   <button
                     class="secondary-button"
@@ -2287,7 +2015,6 @@ function renderAdminLeaves(leaves) {
                     رفض
                   </button>
                 `
-
                 : "—"
             }
 
@@ -2295,7 +2022,6 @@ function renderAdminLeaves(leaves) {
 
         </tr>
       `;
-
     }).join("");
 }
 
@@ -2304,32 +2030,25 @@ async function reviewLeave(
   leaveId,
   status
 ) {
-
   if (!isAdmin()) {
     return;
   }
 
-  const {
-    error
-  } =
+  const { error } =
     await supabaseClient
       .from("leave_requests")
       .update({
-
-        status:
-          status,
+        status: status,
 
         reviewed_by:
           currentUser.id,
 
         reviewed_at:
           new Date().toISOString()
-
       })
       .eq("id", leaveId);
 
   if (error) {
-
     alert(
       error.message
     );
@@ -2352,11 +2071,9 @@ async function reviewLeave(
 ===================================================== */
 
 function setupNavigation() {
-
   document
     .querySelectorAll(".nav-btn")
     .forEach(button => {
-
       button.addEventListener(
         "click",
         async () => {
@@ -2386,7 +2103,6 @@ function setupNavigation() {
             button.dataset.page ===
             "employees"
           ) {
-
             await loadEmployees();
           }
 
@@ -2394,7 +2110,6 @@ function setupNavigation() {
             button.dataset.page ===
             "adminAttendance"
           ) {
-
             await loadAdminAttendance();
           }
 
@@ -2402,13 +2117,10 @@ function setupNavigation() {
             button.dataset.page ===
             "adminLeaves"
           ) {
-
             await loadAdminLeaves();
           }
-
         }
       );
-
     });
 }
 
@@ -2418,7 +2130,6 @@ function setupNavigation() {
 ===================================================== */
 
 async function logout() {
-
   await supabaseClient
     .auth
     .signOut();
@@ -2445,7 +2156,9 @@ async function logout() {
 
 function setupEvents() {
 
-  /* LOGIN */
+  /* ===================================================
+     LOGIN
+  =================================================== */
 
   $("loginForm")
     ?.addEventListener(
@@ -2456,82 +2169,186 @@ function setupEvents() {
 
         const email =
           $("email")
-            .value
-            .trim();
+            ?.value
+            ?.trim() || "";
 
         const password =
           $("password")
-            .value;
+            ?.value || "";
 
         const message =
           $("loginMessage");
+
+        if (!message) {
+          return;
+        }
 
         message.style.color =
           "var(--danger)";
 
         message.textContent =
           "جاري تسجيل الدخول...";
-try {
 
-  try {
+        console.log(
+          "LOGIN START:",
+          email
+        );
 
-  console.log("1 - بدء تسجيل الدخول");
+        try {
 
-  const result = await supabaseClient.auth.signInWithPassword({
-    email: email,
-    password: password
-  });
+          /*
+             تسجيل الدخول من Supabase
+          */
 
-  console.log("2 - نتيجة Supabase:", result);
+          const {
+            data,
+            error
+          } =
+            await supabaseClient.auth.signInWithPassword({
+              email: email,
+              password: password
+            });
 
-  if (result.error) {
-    throw result.error;
-  }
+          console.log(
+            "SUPABASE LOGIN RESULT:",
+            {
+              data: data,
+              error: error
+            }
+          );
 
-  console.log("3 - تسجيل الدخول نجح");
+          /*
+             إذا Supabase رجع خطأ
+          */
 
-  currentUser = result.data.user;
+          if (error) {
+            throw error;
+          }
 
-  message.style.color = "var(--success)";
-  message.textContent = "تسجيل الدخول نجح، جاري فتح النظام...";
+          /*
+             التأكد من وجود المستخدم
+          */
 
-  await loadProfile();
+          if (!data?.user) {
+            throw new Error(
+              "لم يتم العثور على حساب المستخدم."
+            );
+          }
 
-  console.log("4 - Profile loaded");
+          currentUser =
+            data.user;
 
-  setupAdminUI();
+          console.log(
+            "USER LOGIN SUCCESS:",
+            currentUser.id
+          );
 
-  await loadDashboard();
+          message.style.color =
+            "var(--success)";
 
-  await loadLeaves();
+          message.textContent =
+            "تم تسجيل الدخول، جاري فتح النظام...";
 
-  if (isAdmin()) {
-    await loadEmployees();
-    await loadAdminAttendance();
-    await loadAdminLeaves();
-  }
+          /*
+             تحميل بيانات الموظف
+          */
 
-  showApp();
+          await loadProfile();
 
-} catch (error) {
+          console.log(
+            "PROFILE LOADED:",
+            currentProfile
+          );
 
-  console.error("LOGIN ERROR:", error);
+          /*
+             إعداد صلاحيات الأدمن
+          */
 
-  message.style.color = "var(--danger)";
+          setupAdminUI();
 
-  message.textContent =
-    error?.message ||
-    error?.error_description ||
-    "حدث خطأ أثناء تسجيل الدخول.";
-}
-      
+          /*
+             تحميل لوحة التحكم
+          */
 
-   
+          await loadDashboard();
+
+          /*
+             تحميل الإجازات
+          */
+
+          await loadLeaves();
+
+          /*
+             إذا المستخدم Admin
+          */
+
+          if (isAdmin()) {
+
+            await loadEmployees();
+
+            await loadAdminAttendance();
+
+            await loadAdminLeaves();
+          }
+
+          /*
+             فتح التطبيق
+          */
+
+          showApp();
+
+          console.log(
+            "APP OPENED SUCCESSFULLY"
+          );
+
+        } catch (error) {
+
+          console.error(
+            "LOGIN ERROR:",
+            error
+          );
+
+          message.style.color =
+            "var(--danger)";
+
+          /*
+             رسالة واضحة حسب نوع الخطأ
+          */
+
+          if (
+            error?.message ===
+            "Invalid login credentials"
+          ) {
+
+            message.textContent =
+              "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
+
+          } else if (
+            error?.message
+              ?.toLowerCase()
+              ?.includes(
+                "email not confirmed"
+              )
+          ) {
+
+            message.textContent =
+              "البريد الإلكتروني للحساب غير مؤكد.";
+
+          } else {
+
+            message.textContent =
+              error?.message ||
+              error?.error_description ||
+              "حدث خطأ أثناء تسجيل الدخول.";
+          }
+        }
       }
     );
 
 
-  /* FORGOT PASSWORD */
+  /* ===================================================
+     FORGOT PASSWORD
+  =================================================== */
 
   $("forgotPasswordBtn")
     ?.addEventListener(
@@ -2544,32 +2361,31 @@ try {
             ?.trim();
 
         if (email) {
-
-          $("forgotEmail")
-            .value =
+          $("forgotEmail").value =
             email;
         }
 
         showForgotPassword();
-
       }
     );
 
 
-  /* BACK TO LOGIN */
+  /* ===================================================
+     BACK TO LOGIN
+  =================================================== */
 
   $("backToLoginBtn")
     ?.addEventListener(
       "click",
       () => {
-
         showLogin();
-
       }
     );
 
 
-  /* SEND RESET EMAIL */
+  /* ===================================================
+     SEND RESET EMAIL
+  =================================================== */
 
   $("forgotForm")
     ?.addEventListener(
@@ -2618,12 +2434,13 @@ try {
             error?.message ||
             "تعذر إرسال رابط الاستعادة.";
         }
-
       }
     );
 
 
-  /* RESET PASSWORD */
+  /* ===================================================
+     RESET PASSWORD
+  =================================================== */
 
   $("resetForm")
     ?.addEventListener(
@@ -2632,7 +2449,9 @@ try {
     );
 
 
-  /* ATTENDANCE */
+  /* ===================================================
+     ATTENDANCE
+  =================================================== */
 
   $("attendanceButton")
     ?.addEventListener(
@@ -2641,7 +2460,9 @@ try {
     );
 
 
-  /* LEAVE */
+  /* ===================================================
+     LEAVE
+  =================================================== */
 
   $("leaveForm")
     ?.addEventListener(
@@ -2650,7 +2471,9 @@ try {
     );
 
 
-  /* LOGOUT */
+  /* ===================================================
+     LOGOUT
+  =================================================== */
 
   $("logoutBtn")
     ?.addEventListener(
@@ -2659,7 +2482,9 @@ try {
     );
 
 
-  /* ADD EMPLOYEE */
+  /* ===================================================
+     ADD EMPLOYEE
+  =================================================== */
 
   $("showEmployeeForm")
     ?.addEventListener(
@@ -2677,12 +2502,13 @@ try {
         $("employeeForm")
           .classList
           .remove("hidden");
-
       }
     );
 
 
-  /* CANCEL EMPLOYEE */
+  /* ===================================================
+     CANCEL EMPLOYEE
+  =================================================== */
 
   $("cancelEmployeeForm")
     ?.addEventListener(
@@ -2696,12 +2522,13 @@ try {
         $("employeeForm")
           .classList
           .add("hidden");
-
       }
     );
 
 
-  /* SAVE EMPLOYEE */
+  /* ===================================================
+     SAVE EMPLOYEE
+  =================================================== */
 
   $("employeeForm")
     ?.addEventListener(
@@ -2729,7 +2556,7 @@ function setupAuthListener() {
       );
 
       /*
-        رابط استعادة كلمة المرور.
+         استعادة كلمة المرور
       */
 
       if (
@@ -2746,8 +2573,7 @@ function setupAuthListener() {
       }
 
       /*
-        أثناء Recovery لا نفتح
-        Dashboard.
+         أثناء Recovery
       */
 
       if (
@@ -2767,7 +2593,7 @@ function setupAuthListener() {
       }
 
       /*
-        تسجيل الخروج.
+         تسجيل الخروج
       */
 
       if (
@@ -2782,7 +2608,6 @@ function setupAuthListener() {
 
         return;
       }
-
     }
   );
 }
@@ -2810,14 +2635,12 @@ async function handleRecoverySession() {
     params.get("code");
 
   /*
-    PKCE recovery.
+     PKCE recovery
   */
 
   if (code) {
 
-    const {
-      error
-    } =
+    const { error } =
       await supabaseClient
         .auth
         .exchangeCodeForSession(code);
@@ -2848,12 +2671,10 @@ async function handleRecoverySession() {
   }
 
   /*
-    التأكد من وجود session.
+     التأكد من وجود Session
   */
 
-  const {
-    data
-  } =
+  const { data } =
     await supabaseClient.auth.getSession();
 
   if (!data?.session) {
@@ -2912,7 +2733,7 @@ async function initializeApp() {
   }
 
   /*
-    نفحص Recovery أولاً.
+     نفحص Recovery أولاً
   */
 
   try {
@@ -2940,16 +2761,14 @@ async function initializeApp() {
   }
 
   /*
-    الحصول على الجلسة الحالية.
+     الحصول على Session الحالية
   */
 
-  const {
-    data
-  } =
+  const { data } =
     await supabaseClient.auth.getSession();
 
   /*
-    لا نفتح التطبيق في Recovery.
+     لا نفتح التطبيق في Recovery
   */
 
   if (
@@ -2963,7 +2782,7 @@ async function initializeApp() {
   }
 
   /*
-    مستخدم مسجل الدخول.
+     مستخدم مسجل الدخول
   */
 
   if (data?.session) {
@@ -3045,4 +2864,3 @@ window.reviewLeave =
 ===================================================== */
 
 initializeApp();
-```
