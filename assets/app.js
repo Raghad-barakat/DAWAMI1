@@ -2473,26 +2473,51 @@ function setupEvents() {
           "جاري تسجيل الدخول...";
 try {
 
-  await login(
-    email,
-    password
-  );
+  try {
 
-  message.style.color =
-    "var(--success)";
+  console.log("1 - بدء تسجيل الدخول");
 
-  message.textContent =
-    "تم تسجيل الدخول بنجاح.";
+  const result = await supabaseClient.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  console.log("2 - نتيجة Supabase:", result);
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  console.log("3 - تسجيل الدخول نجح");
+
+  currentUser = result.data.user;
+
+  message.style.color = "var(--success)";
+  message.textContent = "تسجيل الدخول نجح، جاري فتح النظام...";
+
+  await loadProfile();
+
+  console.log("4 - Profile loaded");
+
+  setupAdminUI();
+
+  await loadDashboard();
+
+  await loadLeaves();
+
+  if (isAdmin()) {
+    await loadEmployees();
+    await loadAdminAttendance();
+    await loadAdminLeaves();
+  }
+
+  showApp();
 
 } catch (error) {
 
-  console.error(
-    "LOGIN ERROR:",
-    error
-  );
+  console.error("LOGIN ERROR:", error);
 
-  message.style.color =
-    "var(--danger)";
+  message.style.color = "var(--danger)";
 
   message.textContent =
     error?.message ||
@@ -2501,8 +2526,7 @@ try {
 }
       
 
-        
-
+   
       }
     );
 
