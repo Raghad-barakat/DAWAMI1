@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>WorkTrack | الموظفين والدوام والرواتب</title>
+
+  <link rel="stylesheet" href="assets/style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginScreen" class="login-screen">
+
+    <div class="login-card">
+
+      <div class="logo">W</div>
+
+      <h1>WorkTrack</h1>
+
+      <p>نظام الموظفين والدوام والرواتب</p>
+
+      <form id="loginForm">
+
+        <input
+          type="email"
+          id="email"
+          placeholder="البريد الإلكتروني"
+          required
+        >
+
+        <input
+          type="password"
+          id="password"
+          placeholder="كلمة المرور"
+          required
+        >
+
+        <button type="submit">
+          تسجيل الدخول
+        </button>
+
+        <div id="loginMessage"></div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- APP -->
+  <div id="app" class="app hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <div class="brand">
+
+        <div class="logo small">W</div>
+
+        <div>
+          <strong>WorkTrack</strong>
+          <small>Employee System</small>
+        </div>
+
+      </div>
+
+
+      <nav>
+
+        <button class="nav-btn active" data-page="dashboard">
+          الرئيسية
+        </button>
+
+        <button class="nav-btn" data-page="attendance">
+          الدوام
+        </button>
+
+        <button class="nav-btn" data-page="leave">
+          الإجازات
+        </button>
+
+        <button class="nav-btn" data-page="payroll">
+          الراتب
+        </button>
+
+      </nav>
+
+
+      <button id="logoutBtn" class="logout">
+        تسجيل الخروج
+      </button>
+
+    </aside>
+
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <header class="topbar">
+
+        <div>
+
+          <span class="eyebrow">
+            بوابة الموظف
+          </span>
+
+          <h1 id="welcomeText">
+            مرحباً
+          </h1>
+
+          <p>
+            تابع دوامك وساعات عملك وراتبك المتوقع.
+          </p>
+
+        </div>
+
+        <div id="currentDate"></div>
+
+      </header>
+
+
+      <!-- DASHBOARD -->
+      <section id="dashboard" class="page active">
+
+        <div class="attendance-hero">
+
+          <div>
+
+            <span>
+              حالة الدوام اليوم
+            </span>
+
+            <h2 id="todayStatus">
+              لم تسجل حضورك
+            </h2>
+
+            <p id="todayMessage">
+              اضغط على الزر لتسجيل بداية الدوام.
+            </p>
+
+          </div>
+
+          <button id="attendanceButton">
+            تسجيل حضور
+          </button>
+
+        </div>
+
+
+        <div class="stats">
+
+          <div class="stat-card">
+
+            <span>
+              ساعات هذا الشهر
+            </span>
+
+            <strong id="monthlyHours">
+              0:00
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <span>
+              ساعات الإضافي
+            </span>
+
+            <strong id="overtimeHours">
+              0:00
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <span>
+              الراتب المتوقع
+            </span>
+
+            <strong id="expectedSalary">
+              ₪0
+            </strong>
+
+          </div>
+
+
+          <div class="stat-card">
+
+            <span>
+              حالة الدوام
+            </span>
+
+            <strong id="attendanceAlert" class="success">
+              سليم
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <h2>
+                آخر الدوامات
+              </h2>
+
+              <p>
+                آخر سجلات الحضور والانصراف.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="table-container">
+
+            <table>
+
+              <thead>
+
+                <tr>
+
+                  <th>التاريخ</th>
+                  <th>الحضور</th>
+                  <th>الانصراف</th>
+                  <th>الساعات</th>
+                  <th>الإضافي</th>
+                  <th>الحالة</th>
+
+                </tr>
+
+              </thead>
+
+              <tbody id="recentAttendance">
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ATTENDANCE -->
+      <section id="attendance" class="page">
+
+        <div class="panel">
+
+          <h2>
+            سجل الدوام
+          </h2>
+
+          <p>
+            جميع سجلات حضورك وانصرافك.
+          </p>
+
+
+          <div class="table-container">
+
+            <table>
+
+              <thead>
+
+                <tr>
+
+                  <th>التاريخ</th>
+                  <th>الحضور</th>
+                  <th>الانصراف</th>
+                  <th>الساعات</th>
+                  <th>الإضافي</th>
+                  <th>الحالة</th>
+
+                </tr>
+
+              </thead>
+
+              <tbody id="allAttendance">
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- LEAVE -->
+      <section id="leave" class="page">
+
+        <div class="panel">
+
+          <h2>
+            الإجازات
+          </h2>
+
+          <p>
+            قدم طلب إجازة وتابع حالته.
+          </p>
+
+
+          <div class="leave-summary">
+
+            <div>
+              <strong id="leaveAvailable">
+                18
+              </strong>
+
+              <span>
+                المتاح
+              </span>
+            </div>
+
+
+            <div>
+              <strong id="leaveUsed">
+                0
+              </strong>
+
+              <span>
+                المستخدم
+              </span>
+            </div>
+
+
+            <div>
+              <strong id="leaveRemaining">
+                18
+              </strong>
+
+              <span>
+                المتبقي
+              </span>
+            </div>
+
+          </div>
+
+
+          <form id="leaveForm" class="form">
+
+            <label>
+
+              من
+
+              <input
+                type="date"
+                id="leaveStart"
+                required
+              >
+
+            </label>
+
+
+            <label>
+
+              إلى
+
+              <input
+                type="date"
+                id="leaveEnd"
+                required
+              >
+
+            </label>
+
+
+            <label>
+
+              السبب
+
+              <input
+                type="text"
+                id="leaveReason"
+                placeholder="سبب الإجازة"
+                required
+              >
+
+            </label>
+
+
+            <button type="submit">
+              إرسال طلب الإجازة
+            </button>
+
+          </form>
+
+
+          <div id="leaveList"></div>
+
+        </div>
+
+      </section>
+
+
+      <!-- PAYROLL -->
+      <section id="payroll" class="page">
+
+        <div class="panel">
+
+          <h2>
+            الراتب المتوقع
+          </h2>
+
+          <p>
+            ملخص الراتب حسب بياناتك الحالية.
+          </p>
+
+
+          <div class="payroll-box">
+
+            <div>
+
+              <span>
+                الراتب الأساسي
+              </span>
+
+              <strong id="baseSalary">
+                ₪0
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>
+                الإضافي
+              </span>
+
+              <strong id="overtimePay">
+                ₪0
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>
+                الخصومات
+              </span>
+
+              <strong id="deductions">
+                ₪0
+              </strong>
+
+            </div>
+
+
+            <hr>
+
+
+            <div>
+
+              <span>
+                الراتب المتوقع
+              </span>
+
+              <strong id="totalSalary">
+                ₪0
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <footer>
+        WorkTrack © 2026
+      </footer>
+
+    </main>
+
+  </div>
+
+
+  <script src="assets/config.js"></script>
+  <script src="assets/app.js"></script>
+
+</body>
+</html>
