@@ -14,7 +14,6 @@ if (!config) {
   throw new Error("ملف config.js غير موجود.");
 }
 
-
 if (
   !window.supabase ||
   !window.supabase.createClient
@@ -25,10 +24,24 @@ if (
 }
 
 
+/*
+  مهم جداً:
+  Supabase يتولى تلقائياً اكتشاف رابط
+  استعادة كلمة المرور وتحويله إلى Session.
+*/
+
 const supabaseClient =
   window.supabase.createClient(
     config.SUPABASE_URL,
-    config.SUPABASE_KEY
+    config.SUPABASE_KEY,
+    {
+      auth: {
+        flowType: "pkce",
+        detectSessionInUrl: true,
+        persistSession: true,
+        autoRefreshToken: true
+      }
+    }
   );
 
 
@@ -36,7 +49,7 @@ let currentUser = null;
 let currentProfile = null;
 
 let recoveryMode = false;
-let recoveryHandled = false;
+let recoveryCompleted = false;
 
 
 /* =====================================================
@@ -86,8 +99,7 @@ function formatMinutes(minutes) {
 
 function getToday() {
 
-  const now =
-    new Date();
+  const now = new Date();
 
   const year =
     now.getFullYear();
@@ -156,7 +168,8 @@ function buildTimestamp(
   }
 
   const parts =
-    time.split(":")
+    time
+      .split(":")
       .map(Number);
 
   const hours =
@@ -256,28 +269,31 @@ function escapeHtml(value) {
 
 
 /* =====================================================
-   PASSWORD RECOVERY URL DETECTION
+   URL CLEANUP
 ===================================================== */
 
-function isRecoveryUrl() {
+function cleanAuthUrl() {
 
-  const hash =
-    window.location.hash || "";
+  try {
 
-  const search =
-    window.location.search || "";
+    const cleanUrl =
+      window.location.origin +
+      window.location.pathname;
 
-  return (
-    hash.includes(
-      "type=recovery"
-    ) ||
-    search.includes(
-      "type=recovery"
-    ) ||
-    new URLSearchParams(
-      search
-    ).has("code")
-  );
+    window.history.replaceState(
+      {},
+      document.title,
+      cleanUrl
+    );
+
+  } catch (error) {
+
+    console.warn(
+      "Could not clean auth URL:",
+      error
+    );
+
+  }
 }
 
 
@@ -366,23 +382,15 @@ function showApp() {
 
 
 /* =====================================================
-   PASSWORD RESET
+   PASSWORD RECOVERY
 ===================================================== */
 
-async function sendPasswordReset(
-  email
-) {
-
-  /*
-    مهم:
-    نستخدم نفس صفحة التطبيق كصفحة
-    رجوع، ثم app.js يكتشف recovery
-    ويعرض شاشة تغيير كلمة المرور.
-  */
+async function sendPasswordReset(email) {
 
   const redirectUrl =
     window.location.origin +
     window.location.pathname;
+
 
   const {
     error
@@ -397,15 +405,14 @@ async function sendPasswordReset(
         }
       );
 
+
   if (error) {
     throw error;
   }
 }
 
 
-async function updatePassword(
-  password
-) {
+async function updatePassword(password) {
 
   const {
     data,
@@ -417,30 +424,34 @@ async function updatePassword(
         password
       });
 
+
   if (error) {
     throw error;
   }
+
 
   return data;
 }
 
 
-async function handleResetPassword(
-  event
-) {
+async function handleResetPassword(event) {
 
   event.preventDefault();
 
+
   const password =
     $("newPassword")
-      .value;
+      ?.value || "";
+
 
   const confirm =
     $("confirmPassword")
-      .value;
+      ?.value || "";
+
 
   const message =
     $("resetMessage");
+
 
   if (!message) {
     return;
@@ -451,9 +462,7 @@ async function handleResetPassword(
     "var(--danger)";
 
 
-  if (
-    password.length < 6
-  ) {
+  if (password.length < 6) {
 
     message.textContent =
       "كلمة المرور يجب أن تكون 6 أحرف على الأقل.";
@@ -462,9 +471,7 @@ async function handleResetPassword(
   }
 
 
-  if (
-    password !== confirm
-  ) {
+  if (password !== confirm) {
 
     message.textContent =
       "كلمتا المرور غير متطابقتين.";
@@ -473,11 +480,44 @@ async function handleResetPassword(
   }
 
 
+  /*
+    نتأكد أن هناك Session فعلياً.
+    هذا يمنع حفظ كلمة المرور إذا فتح
+    المستخدم الصفحة بدون رابط استعادة صالح.
+  */
+
+  const {
+    data: sessionData
+  } =
+    await supabaseClient
+      .auth
+      .getSession();
+
+
+  if (!sessionData?.session) {
+
+    message.textContent =
+      "رابط الاستعادة غير صالح أو انتهت صلاحيته. اطلبي رابط استعادة جديد.";
+
+    return;
+  }
+
+
   message.style.color =
     "var(--success)";
 
+
   message.textContent =
     "جاري حفظ كلمة المرور...";
+
+
+  const resetButton =
+    $("resetButton");
+
+
+  if (resetButton) {
+    resetButton.disabled = true;
+  }
 
 
   try {
@@ -491,20 +531,17 @@ async function handleResetPassword(
       "تم تغيير كلمة المرور بنجاح.";
 
 
-    $("resetForm")
-      ?.reset();
-
+    recoveryCompleted =
+      true;
 
     recoveryMode =
       false;
 
-    recoveryHandled =
-      true;
-
 
     /*
-      إنهاء جلسة الاستعادة بعد نجاح
-      تغيير كلمة المرور.
+      نغلق جلسة الاستعادة بعد نجاح
+      تغيير كلمة المرور حتى يبدأ تسجيل
+      الدخول من جديد بشكل نظيف.
     */
 
     await supabaseClient
@@ -512,17 +549,11 @@ async function handleResetPassword(
       .signOut();
 
 
-    /*
-      إزالة code/hash من الرابط
-      حتى لا تعود شاشة الاستعادة
-      مرة أخرى عند تحديث الصفحة.
-    */
+    $("resetForm")
+      ?.reset();
 
-    window.history.replaceState(
-      {},
-      document.title,
-      window.location.pathname
-    );
+
+    cleanAuthUrl();
 
 
     setTimeout(
@@ -530,20 +561,23 @@ async function handleResetPassword(
 
         showLogin();
 
+
         if ($("loginMessage")) {
 
           $("loginMessage")
             .style
             .color =
-              "var(--success)";
+            "var(--success)";
+
 
           $("loginMessage")
             .textContent =
-              "تم تغيير كلمة المرور. يمكنك تسجيل الدخول الآن.";
+            "تم تغيير كلمة المرور. سجلي الدخول باستخدام كلمة المرور الجديدة.";
+
         }
 
       },
-      800
+      700
     );
 
 
@@ -561,7 +595,14 @@ async function handleResetPassword(
 
     message.textContent =
       error?.message ||
-      "تعذر تغيير كلمة المرور. يرجى فتح رابط الاستعادة من البريد مرة أخرى.";
+      "تعذر تغيير كلمة المرور. اطلبي رابط استعادة جديد.";
+
+  } finally {
+
+    if (resetButton) {
+      resetButton.disabled = false;
+    }
+
   }
 }
 
@@ -586,8 +627,18 @@ async function login(
         password
       });
 
+
   if (error) {
     throw error;
+  }
+
+
+  if (!data?.user) {
+
+    throw new Error(
+      "لم يتم العثور على المستخدم."
+    );
+
   }
 
 
@@ -630,6 +681,7 @@ async function loadProfile() {
     throw new Error(
       "لم يتم العثور على المستخدم."
     );
+
   }
 
 
@@ -657,6 +709,7 @@ async function loadProfile() {
     throw new Error(
       "لا يوجد ملف موظف مرتبط بهذا الحساب."
     );
+
   }
 
 
@@ -672,6 +725,7 @@ async function loadProfile() {
         data.full_name ||
         "بك"
       }`;
+
   }
 
 
@@ -682,7 +736,9 @@ async function loadProfile() {
       formatMoney(
         data.monthly_salary
       );
+
   }
+
 }
 
 
@@ -712,23 +768,10 @@ function setupAdminUI() {
         }
 
 
-        if (admin) {
-
-          element
-            .classList
-            .remove(
-              "hidden"
-            );
-
-        } else {
-
-          element
-            .classList
-            .add(
-              "hidden"
-            );
-
-        }
+        element.classList.toggle(
+          "hidden",
+          !admin
+        );
 
       }
     );
@@ -802,7 +845,9 @@ async function clockIn() {
     existing.clock_in &&
     !existing.clock_out
   ) {
+
     return;
+
   }
 
 
@@ -848,6 +893,7 @@ async function clockIn() {
   if (error) {
     throw error;
   }
+
 }
 
 
@@ -862,7 +908,9 @@ async function clockOut() {
     !attendance.clock_in ||
     attendance.clock_out
   ) {
+
     return;
+
   }
 
 
@@ -949,6 +997,7 @@ async function clockOut() {
   if (error) {
     throw error;
   }
+
 }
 
 
@@ -1050,6 +1099,7 @@ async function loadAttendance(
     );
 
     return [];
+
   }
 
 
@@ -1104,6 +1154,7 @@ function renderAttendance(
 
             statusText =
               "مكتمل";
+
           }
 
 
@@ -1114,6 +1165,7 @@ function renderAttendance(
 
             statusText =
               "مفتوح";
+
           }
 
 
@@ -1175,9 +1227,11 @@ function renderAttendance(
 
             </tr>
           `;
+
         }
       )
       .join("");
+
 }
 
 
@@ -1212,6 +1266,7 @@ async function calculateHolidayPay() {
       hours: 0,
       amount: 0
     };
+
   }
 
 
@@ -1221,6 +1276,7 @@ async function calculateHolidayPay() {
       hours: 0,
       amount: 0
     };
+
   }
 
 
@@ -1313,6 +1369,7 @@ async function calculateHolidayPay() {
         hours *
         hourlyRate *
         1.5;
+
     }
 
   }
@@ -1358,6 +1415,7 @@ async function calculateDeductions() {
     );
 
     return 0;
+
   }
 
 
@@ -1418,6 +1476,7 @@ async function calculatePayroll() {
       formatMoney(
         baseSalary
       );
+
   }
 
 
@@ -1428,6 +1487,7 @@ async function calculatePayroll() {
       formatMoney(
         holiday.amount
       );
+
   }
 
 
@@ -1438,6 +1498,7 @@ async function calculatePayroll() {
       formatMoney(
         deductions
       );
+
   }
 
 
@@ -1448,6 +1509,7 @@ async function calculatePayroll() {
       formatMoney(
         expected
       );
+
   }
 
 
@@ -1458,6 +1520,7 @@ async function calculatePayroll() {
       formatMoney(
         expected
       );
+
   }
 
 
@@ -1470,6 +1533,7 @@ async function calculatePayroll() {
           holiday.hours * 60
         )
       );
+
   }
 }
 
@@ -1531,6 +1595,7 @@ async function loadDashboard() {
       formatMinutes(
         totalMinutes
       );
+
   }
 
 
@@ -1602,6 +1667,7 @@ async function loadDashboard() {
     $("attendanceButton")
       .textContent =
       "تسجيل حضور";
+
   }
 
 
@@ -1629,6 +1695,7 @@ async function loadDashboard() {
       hasError
         ? "card-value bad"
         : "card-value success";
+
   }
 
 
@@ -1730,6 +1797,7 @@ async function loadLeaves() {
     $("leaveAvailable")
       .textContent =
       available;
+
   }
 
 
@@ -1738,6 +1806,7 @@ async function loadLeaves() {
     $("leaveUsed")
       .textContent =
       used;
+
   }
 
 
@@ -1746,6 +1815,7 @@ async function loadLeaves() {
     $("leaveRemaining")
       .textContent =
       remaining;
+
   }
 
 
@@ -1756,6 +1826,7 @@ async function loadLeaves() {
       "<p>لا توجد طلبات إجازة.</p>";
 
     return;
+
   }
 
 
@@ -1776,6 +1847,7 @@ async function loadLeaves() {
 
             status =
               "مقبولة";
+
           }
 
 
@@ -1786,6 +1858,7 @@ async function loadLeaves() {
 
             status =
               "مرفوضة";
+
           }
 
 
@@ -1815,6 +1888,7 @@ async function loadLeaves() {
 
             </div>
           `;
+
         }
       )
       .join("");
@@ -1825,9 +1899,7 @@ async function loadLeaves() {
    CREATE LEAVE
 ===================================================== */
 
-async function createLeaveRequest(
-  event
-) {
+async function createLeaveRequest(event) {
 
   event.preventDefault();
 
@@ -1880,6 +1952,7 @@ async function createLeaveRequest(
     );
 
     return;
+
   }
 
 
@@ -1918,6 +1991,7 @@ async function createLeaveRequest(
     );
 
     return;
+
   }
 
 
@@ -1983,9 +2057,7 @@ async function loadEmployees() {
 }
 
 
-function renderEmployees(
-  employees
-) {
+function renderEmployees(employees) {
 
   const table =
     $("employeesTable");
@@ -2114,6 +2186,7 @@ function renderEmployees(
 
             </tr>
           `;
+
         }
       )
       .join("");
@@ -2184,9 +2257,7 @@ function openEmployeeForm(
 }
 
 
-async function editEmployee(
-  id
-) {
+async function editEmployee(id) {
 
   if (!isAdmin()) {
 
@@ -2195,6 +2266,7 @@ async function editEmployee(
     );
 
     return;
+
   }
 
 
@@ -2222,6 +2294,7 @@ async function editEmployee(
     );
 
     return;
+
   }
 
 
@@ -2231,9 +2304,7 @@ async function editEmployee(
 }
 
 
-async function saveEmployee(
-  event
-) {
+async function saveEmployee(event) {
 
   event.preventDefault();
 
@@ -2245,6 +2316,7 @@ async function saveEmployee(
     );
 
     return;
+
   }
 
 
@@ -2316,6 +2388,7 @@ async function saveEmployee(
     );
 
     return;
+
   }
 
 
@@ -2328,6 +2401,7 @@ async function saveEmployee(
     );
 
     return;
+
   }
 
 
@@ -2338,6 +2412,7 @@ async function saveEmployee(
     );
 
     return;
+
   }
 
 
@@ -2369,6 +2444,7 @@ async function saveEmployee(
 
 
     return;
+
   }
 
 
@@ -2450,9 +2526,7 @@ async function loadAdminAttendance() {
 }
 
 
-function renderAdminAttendance(
-  records
-) {
+function renderAdminAttendance(records) {
 
   const table =
     $("adminAttendanceTable");
@@ -2569,6 +2643,7 @@ function renderAdminAttendance(
 
             </tr>
           `;
+
         }
       )
       .join("");
@@ -2590,6 +2665,7 @@ async function editAttendance(
     );
 
     return;
+
   }
 
 
@@ -2619,6 +2695,7 @@ async function editAttendance(
     );
 
     return;
+
   }
 
 
@@ -2842,9 +2919,7 @@ async function loadAdminLeaves() {
 }
 
 
-function renderAdminLeaves(
-  leaves
-) {
+function renderAdminLeaves(leaves) {
 
   const table =
     $("adminLeavesTable");
@@ -2894,6 +2969,7 @@ function renderAdminLeaves(
 
             status =
               "مقبولة";
+
           }
 
 
@@ -2904,6 +2980,7 @@ function renderAdminLeaves(
 
             status =
               "مرفوضة";
+
           }
 
 
@@ -2987,6 +3064,7 @@ function renderAdminLeaves(
 
             </tr>
           `;
+
         }
       )
       .join("");
@@ -3110,6 +3188,7 @@ function setupNavigation() {
                 .add(
                   "active"
                 );
+
             }
 
 
@@ -3119,6 +3198,7 @@ function setupNavigation() {
             ) {
 
               await loadEmployees();
+
             }
 
 
@@ -3128,6 +3208,7 @@ function setupNavigation() {
             ) {
 
               await loadAdminAttendance();
+
             }
 
 
@@ -3137,6 +3218,7 @@ function setupNavigation() {
             ) {
 
               await loadAdminLeaves();
+
             }
 
           }
@@ -3167,15 +3249,11 @@ async function logout() {
   recoveryMode =
     false;
 
-  recoveryHandled =
+  recoveryCompleted =
     false;
 
 
-  window.history.replaceState(
-    {},
-    document.title,
-    window.location.pathname
-  );
+  cleanAuthUrl();
 
 
   showLogin();
@@ -3189,7 +3267,9 @@ async function logout() {
 function setupEvents() {
 
 
-  /* LOGIN */
+  /* ===================================================
+     LOGIN
+  =================================================== */
 
   $("loginForm")
     ?.addEventListener(
@@ -3214,8 +3294,29 @@ function setupEvents() {
           $("loginMessage");
 
 
+        const button =
+          $("loginButton");
+
+
+        if (!email || !password) {
+
+          message.style.color =
+            "var(--danger)";
+
+          message.textContent =
+            "أدخلي البريد الإلكتروني وكلمة المرور.";
+
+          return;
+
+        }
+
+
+        button.disabled =
+          true;
+
+
         message.style.color =
-          "var(--danger)";
+          "var(--success)";
 
 
         message.textContent =
@@ -3237,20 +3338,52 @@ function setupEvents() {
         } catch (error) {
 
           console.error(
+            "LOGIN ERROR:",
             error
           );
 
 
-          message.textContent =
-            "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
+          message.style.color =
+            "var(--danger)";
+
+
+          /*
+            نعرض الرسالة الحقيقية في Console،
+            لكن للمستخدم رسالة واضحة.
+          */
+
+          if (
+            error?.message
+              ?.toLowerCase()
+              ?.includes(
+                "email not confirmed"
+              )
+          ) {
+
+            message.textContent =
+              "البريد الإلكتروني غير مؤكد في Supabase.";
+
+          } else {
+
+            message.textContent =
+              "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
+
+          }
+
+        } finally {
+
+          button.disabled =
+            false;
+
         }
 
       }
     );
 
 
-
-  /* FORGOT PASSWORD */
+  /* ===================================================
+     FORGOT PASSWORD
+  =================================================== */
 
   $("forgotPasswordBtn")
     ?.addEventListener(
@@ -3268,6 +3401,7 @@ function setupEvents() {
           $("forgotEmail")
             .value =
             email;
+
         }
 
 
@@ -3277,8 +3411,9 @@ function setupEvents() {
     );
 
 
-
-  /* BACK TO LOGIN */
+  /* ===================================================
+     BACK TO LOGIN
+  =================================================== */
 
   $("backToLoginBtn")
     ?.addEventListener(
@@ -3291,8 +3426,9 @@ function setupEvents() {
     );
 
 
-
-  /* SEND RESET EMAIL */
+  /* ===================================================
+     SEND RESET EMAIL
+  =================================================== */
 
   $("forgotForm")
     ?.addEventListener(
@@ -3312,8 +3448,29 @@ function setupEvents() {
           $("forgotMessage");
 
 
+        const button =
+          $("forgotButton");
+
+
+        if (!email) {
+
+          message.style.color =
+            "var(--danger)";
+
+          message.textContent =
+            "أدخلي البريد الإلكتروني.";
+
+          return;
+
+        }
+
+
+        button.disabled =
+          true;
+
+
         message.style.color =
-          "var(--danger)";
+          "var(--success)";
 
 
         message.textContent =
@@ -3334,10 +3491,10 @@ function setupEvents() {
           message.textContent =
             "تم إرسال رابط تغيير كلمة المرور إلى بريدك الإلكتروني. افتحي الرابط من البريد لإدخال كلمة المرور الجديدة.";
 
-
         } catch (error) {
 
           console.error(
+            "RESET EMAIL ERROR:",
             error
           );
 
@@ -3349,14 +3506,21 @@ function setupEvents() {
           message.textContent =
             error?.message ||
             "تعذر إرسال رابط الاستعادة.";
+
+        } finally {
+
+          button.disabled =
+            false;
+
         }
 
       }
     );
 
 
-
-  /* RESET PASSWORD */
+  /* ===================================================
+     RESET PASSWORD
+  =================================================== */
 
   $("resetForm")
     ?.addEventListener(
@@ -3365,8 +3529,9 @@ function setupEvents() {
     );
 
 
-
-  /* ATTENDANCE */
+  /* ===================================================
+     ATTENDANCE
+  =================================================== */
 
   $("attendanceButton")
     ?.addEventListener(
@@ -3375,8 +3540,9 @@ function setupEvents() {
     );
 
 
-
-  /* LEAVE */
+  /* ===================================================
+     LEAVE
+  =================================================== */
 
   $("leaveForm")
     ?.addEventListener(
@@ -3385,8 +3551,9 @@ function setupEvents() {
     );
 
 
-
-  /* LOGOUT */
+  /* ===================================================
+     LOGOUT
+  =================================================== */
 
   $("logoutBtn")
     ?.addEventListener(
@@ -3395,8 +3562,9 @@ function setupEvents() {
     );
 
 
-
-  /* ADD EMPLOYEE */
+  /* ===================================================
+     ADD EMPLOYEE
+  =================================================== */
 
   $("showEmployeeForm")
     ?.addEventListener(
@@ -3432,8 +3600,9 @@ function setupEvents() {
     );
 
 
-
-  /* CANCEL EMPLOYEE */
+  /* ===================================================
+     CANCEL EMPLOYEE
+  =================================================== */
 
   $("cancelEmployeeForm")
     ?.addEventListener(
@@ -3459,8 +3628,9 @@ function setupEvents() {
     );
 
 
-
-  /* SAVE EMPLOYEE */
+  /* ===================================================
+     SAVE EMPLOYEE
+  =================================================== */
 
   $("employeeForm")
     ?.addEventListener(
@@ -3492,10 +3662,7 @@ function setupAuthListener() {
 
 
         /*
-          أهم جزء:
-          عندما يرجع المستخدم من رابط
-          استعادة كلمة المرور، لا نعرض
-          الصفحة الرئيسية.
+          أهم حدث في استعادة كلمة المرور.
         */
 
         if (
@@ -3506,42 +3673,137 @@ function setupAuthListener() {
           recoveryMode =
             true;
 
-          recoveryHandled =
-            true;
+          recoveryCompleted =
+            false;
+
+
+          showResetPassword();
+
+
+          return;
+
+        }
+
+
+        /*
+          بعد تغيير كلمة المرور بنجاح
+          لا نريد إعادة فتح التطبيق
+          بسبب Session قديمة.
+        */
+
+        if (
+          recoveryCompleted
+        ) {
+
+          return;
+
+        }
+
+
+        /*
+          إذا كنا في شاشة Recovery،
+          لا نفتح التطبيق.
+        */
+
+        if (
+          recoveryMode
+        ) {
 
           showResetPassword();
 
           return;
+
         }
 
 
         /*
-          إذا كان هناك session في وضع
-          الاستعادة، نبقى على شاشة
-          تغيير كلمة المرور.
+          تسجيل دخول عادي.
         */
 
         if (
-          recoveryMode ||
-          recoveryHandled
+          event ===
+          "SIGNED_IN"
         ) {
 
-          if (
-            event !==
-            "SIGNED_OUT"
-          ) {
+          if (!session?.user) {
+            return;
+          }
 
-            showResetPassword();
+
+          currentUser =
+            session.user;
+
+
+          try {
+
+            await loadProfile();
+
+            setupAdminUI();
+
+            await loadDashboard();
+
+            await loadLeaves();
+
+
+            if (isAdmin()) {
+
+              await loadEmployees();
+
+              await loadAdminAttendance();
+
+              await loadAdminLeaves();
+
+            }
+
+
+            showApp();
+
+
+          } catch (error) {
+
+            console.error(
+              "SIGNED_IN PROFILE ERROR:",
+              error
+            );
+
+
+            await supabaseClient
+              .auth
+              .signOut();
+
+
+            currentUser =
+              null;
+
+            currentProfile =
+              null;
+
+
+            showLogin();
+
+
+            if ($("loginMessage")) {
+
+              $("loginMessage")
+                .style
+                .color =
+                "var(--danger)";
+
+
+              $("loginMessage")
+                .textContent =
+                error?.message ||
+                "تم تسجيل الدخول لكن تعذر تحميل ملف الموظف.";
+
+            }
 
           }
 
+
           return;
+
         }
 
-
-        /*
-          تسجيل خروج عادي.
-        */
 
         if (
           event ===
@@ -3554,100 +3816,17 @@ function setupAuthListener() {
           currentProfile =
             null;
 
-          showLogin();
 
-          return;
+          if (!recoveryCompleted) {
+
+            showLogin();
+
+          }
+
         }
 
       }
     );
-}
-
-
-/* =====================================================
-   RECOVERY SESSION
-===================================================== */
-
-async function handleRecoverySession() {
-
-  if (
-    !isRecoveryUrl()
-  ) {
-
-    return false;
-  }
-
-
-  recoveryMode =
-    true;
-
-  recoveryHandled =
-    true;
-
-
-  /*
-    PKCE:
-    إذا كان الرابط يحتوي ?code=
-    يجب تحويل الـ code إلى session.
-  */
-
-  const params =
-    new URLSearchParams(
-      window.location.search
-    );
-
-
-  const code =
-    params.get("code");
-
-
-  if (code) {
-
-    const {
-      error
-    } =
-      await supabaseClient
-        .auth
-        .exchangeCodeForSession(
-          code
-        );
-
-
-    if (error) {
-
-      console.error(
-        "Recovery code error:",
-        error
-      );
-
-
-      showResetPassword();
-
-
-      const message =
-        $("resetMessage");
-
-
-      if (message) {
-
-        message.style.color =
-          "var(--danger)";
-
-        message.textContent =
-          "رابط استعادة كلمة المرور غير صالح أو انتهت صلاحيته. اطلبي رابطاً جديداً.";
-      }
-
-
-      return true;
-    }
-
-  }
-
-
-  showResetPassword();
-
-
-  return true;
 }
 
 
@@ -3685,134 +3864,136 @@ async function initializeApp() {
               "numeric"
           }
         );
+
   }
 
 
   /*
-    أول شيء نفحص إذا الرابط الحالي
-    هو رابط استعادة كلمة المرور.
+    نتحقق أولاً من وجود
+    PASSWORD_RECOVERY event أو Session
+    تم إنشاؤها تلقائياً من Supabase.
   */
 
   try {
 
-    const isRecovery =
-      await handleRecoverySession();
+    const {
+      data: sessionData
+    } =
+      await supabaseClient
+        .auth
+        .getSession();
 
 
-    if (isRecovery) {
+    /*
+      إذا كان الرابط يحتوي على
+      recovery parameters، ننتظر
+      Auth listener ليعرض شاشة reset.
+    */
+
+    const url =
+      window.location.href;
+
+
+    const hasRecovery =
+      url.includes(
+        "type=recovery"
+      ) ||
+      url.includes(
+        "code="
+      );
+
+
+    if (hasRecovery) {
+
+      recoveryMode =
+        true;
+
+
+      showResetPassword();
+
 
       return;
+
     }
 
-  } catch (error) {
 
-    console.error(
-      "Recovery initialization error:",
-      error
-    );
+    /*
+      إذا يوجد Session عادية،
+      نفتح التطبيق.
+    */
 
+    if (
+      sessionData?.session?.user
+    ) {
 
-    recoveryMode =
-      true;
-
-    recoveryHandled =
-      true;
-
-    showResetPassword();
-
-    return;
-  }
+      currentUser =
+        sessionData.session.user;
 
 
-  /*
-    إذا كان المستخدم داخل مسبقاً.
-  */
+      try {
 
-  const {
-    data
-  } =
-    await supabaseClient
-      .auth
-      .getSession();
+        await loadProfile();
 
+        setupAdminUI();
 
-  /*
-    لا نفتح التطبيق إذا كنا في
-    recovery mode.
-  */
+        await loadDashboard();
 
-  if (
-    recoveryMode ||
-    recoveryHandled
-  ) {
-
-    showResetPassword();
-
-    return;
-  }
+        await loadLeaves();
 
 
-  /*
-    مستخدم مسجل الدخول.
-  */
+        if (isAdmin()) {
 
-  if (
-    data?.session
-  ) {
+          await loadEmployees();
 
-    currentUser =
-      data.session.user;
+          await loadAdminAttendance();
 
+          await loadAdminLeaves();
 
-    try {
-
-      await loadProfile();
-
-      setupAdminUI();
-
-      await loadDashboard();
-
-      await loadLeaves();
+        }
 
 
-      if (isAdmin()) {
+        showApp();
 
-        await loadEmployees();
 
-        await loadAdminAttendance();
+      } catch (error) {
 
-        await loadAdminLeaves();
+        console.error(
+          "SESSION INITIALIZATION ERROR:",
+          error
+        );
+
+
+        await supabaseClient
+          .auth
+          .signOut();
+
+
+        currentUser =
+          null;
+
+        currentProfile =
+          null;
+
+
+        showLogin();
 
       }
 
 
-      showApp();
-
-
-    } catch (error) {
-
-      console.error(
-        error
-      );
-
-
-      await supabaseClient
-        .auth
-        .signOut();
-
-
-      currentUser =
-        null;
-
-      currentProfile =
-        null;
-
+    } else {
 
       showLogin();
+
     }
 
 
-  } else {
+  } catch (error) {
+
+    console.error(
+      "INITIALIZATION ERROR:",
+      error
+    );
+
 
     showLogin();
 
@@ -3828,10 +4009,8 @@ async function initializeApp() {
 window.editEmployee =
   editEmployee;
 
-
 window.editAttendance =
   editAttendance;
-
 
 window.reviewLeave =
   reviewLeave;
