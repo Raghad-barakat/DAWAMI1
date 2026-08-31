@@ -3,58 +3,37 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+  <title>DAWAMI1 | نظام الموظفين والدوام والرواتب</title>
 
-  <title>
-    DAWAMI1 | نظام الموظفين والدوام والرواتب
-  </title>
-
-  <link
-    rel="stylesheet"
-    href="assets/style.css"
-  >
+  <link rel="stylesheet" href="assets/style.css">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 
-
 <!-- =====================================================
      LOGIN
 ===================================================== -->
 
-<div
-  id="loginScreen"
-  class="login-screen"
->
+<div id="loginScreen" class="login-screen">
 
   <div class="login-card">
 
-    <div class="logo">
-      D
-    </div>
+    <div class="logo">D</div>
 
-    <h1>
-      DAWAMI1
-    </h1>
+    <h1>DAWAMI1</h1>
 
     <p class="login-subtitle">
       نظام الموظفين والدوام والرواتب
     </p>
 
-
     <form id="loginForm">
 
       <div class="form-group">
-
-        <label for="email">
-          البريد الإلكتروني
-        </label>
+        <label for="email">البريد الإلكتروني</label>
 
         <input
           type="email"
@@ -62,15 +41,10 @@
           autocomplete="email"
           required
         >
-
       </div>
 
-
       <div class="form-group">
-
-        <label for="password">
-          كلمة المرور
-        </label>
+        <label for="password">كلمة المرور</label>
 
         <input
           type="password"
@@ -78,17 +52,15 @@
           autocomplete="current-password"
           required
         >
-
       </div>
-
 
       <button
         class="primary-button"
         type="submit"
+        id="loginButton"
       >
         تسجيل الدخول
       </button>
-
 
       <button
         type="button"
@@ -97,7 +69,6 @@
       >
         نسيت كلمة المرور؟
       </button>
-
 
       <div id="loginMessage"></div>
 
@@ -108,30 +79,21 @@
 </div>
 
 
-
 <!-- =====================================================
      FORGOT PASSWORD
 ===================================================== -->
 
-<div
-  id="forgotScreen"
-  class="login-screen hidden"
->
+<div id="forgotScreen" class="login-screen hidden">
 
   <div class="login-card">
 
-    <div class="logo">
-      D
-    </div>
+    <div class="logo">D</div>
 
-    <h1>
-      استعادة كلمة المرور
-    </h1>
+    <h1>استعادة كلمة المرور</h1>
 
     <p class="login-subtitle">
       أدخل بريدك الإلكتروني لإرسال رابط تغيير كلمة المرور.
     </p>
-
 
     <form id="forgotForm">
 
@@ -150,14 +112,13 @@
 
       </div>
 
-
       <button
         class="primary-button"
         type="submit"
+        id="forgotButton"
       >
         إرسال رابط الاستعادة
       </button>
-
 
       <button
         type="button"
@@ -166,7 +127,6 @@
       >
         العودة لتسجيل الدخول
       </button>
-
 
       <div id="forgotMessage"></div>
 
@@ -177,30 +137,21 @@
 </div>
 
 
-
 <!-- =====================================================
      RESET PASSWORD
 ===================================================== -->
 
-<div
-  id="resetScreen"
-  class="login-screen hidden"
->
+<div id="resetScreen" class="login-screen hidden">
 
   <div class="login-card">
 
-    <div class="logo">
-      D
-    </div>
+    <div class="logo">D</div>
 
-    <h1>
-      تغيير كلمة المرور
-    </h1>
+    <h1>تغيير كلمة المرور</h1>
 
     <p class="login-subtitle">
       أدخل كلمة المرور الجديدة لحسابك.
     </p>
-
 
     <form id="resetForm">
 
@@ -220,7 +171,6 @@
 
       </div>
 
-
       <div class="form-group">
 
         <label for="confirmPassword">
@@ -237,14 +187,13 @@
 
       </div>
 
-
       <button
         class="primary-button"
         type="submit"
+        id="resetButton"
       >
         حفظ كلمة المرور
       </button>
-
 
       <div id="resetMessage"></div>
 
@@ -255,15 +204,11 @@
 </div>
 
 
-
 <!-- =====================================================
-     APPLICATION
+     APP
 ===================================================== -->
 
-<div
-  id="app"
-  class="hidden"
->
+<div id="app" class="hidden">
 
   <aside class="sidebar">
 
@@ -274,7 +219,6 @@
       </div>
 
       <div>
-
         <div class="sidebar-logo-text">
           DAWAMI1
         </div>
@@ -282,7 +226,6 @@
         <small>
           Employee System
         </small>
-
       </div>
 
     </div>
@@ -297,14 +240,12 @@
         الرئيسية
       </button>
 
-
       <button
         class="nav-btn"
         data-page="attendance"
       >
         الدوام
       </button>
-
 
       <button
         class="nav-btn"
@@ -313,14 +254,12 @@
         الإجازات
       </button>
 
-
       <button
         class="nav-btn"
         data-page="payroll"
       >
         الراتب
       </button>
-
 
       <button
         id="adminEmployeesNav"
@@ -330,7 +269,6 @@
         الموظفين
       </button>
 
-
       <button
         id="adminAttendanceNav"
         class="nav-btn hidden"
@@ -338,7 +276,6 @@
       >
         إدارة الدوام
       </button>
-
 
       <button
         id="adminLeavesNav"
@@ -361,13 +298,9 @@
   </aside>
 
 
-
   <main class="main-content">
 
-
-    <!-- =================================================
-         TOPBAR
-    ================================================= -->
+    <!-- TOPBAR -->
 
     <header class="topbar">
 
@@ -387,16 +320,14 @@
 
       </div>
 
-
       <div id="currentDate"></div>
 
     </header>
 
 
-
-    <!-- =================================================
+    <!-- =====================================================
          DASHBOARD
-    ================================================= -->
+    ===================================================== -->
 
     <section
       id="dashboard"
@@ -417,7 +348,6 @@
 
         </div>
 
-
         <button
           id="attendanceButton"
           class="attendance-button"
@@ -428,9 +358,7 @@
       </div>
 
 
-
       <div class="cards-grid">
-
 
         <div class="card stat-card">
 
@@ -446,7 +374,6 @@
           </div>
 
         </div>
-
 
 
         <div class="card stat-card">
@@ -465,7 +392,6 @@
         </div>
 
 
-
         <div class="card stat-card">
 
           <div class="card-label">
@@ -480,7 +406,6 @@
           </div>
 
         </div>
-
 
 
         <div class="card stat-card">
@@ -499,7 +424,6 @@
         </div>
 
       </div>
-
 
 
       <div class="card table-card">
@@ -549,10 +473,9 @@
     </section>
 
 
-
-    <!-- =================================================
+    <!-- =====================================================
          ATTENDANCE
-    ================================================= -->
+    ===================================================== -->
 
     <section
       id="attendance"
@@ -606,10 +529,9 @@
     </section>
 
 
-
-    <!-- =================================================
+    <!-- =====================================================
          LEAVE
-    ================================================= -->
+    ===================================================== -->
 
     <section
       id="leave"
@@ -628,7 +550,6 @@
 
 
         <div class="leave-summary">
-
 
           <div class="card">
 
@@ -676,7 +597,6 @@
             </div>
 
           </div>
-
 
         </div>
 
@@ -752,10 +672,9 @@
     </section>
 
 
-
-    <!-- =================================================
+    <!-- =====================================================
          PAYROLL
-    ================================================= -->
+    ===================================================== -->
 
     <section
       id="payroll"
@@ -828,10 +747,9 @@
     </section>
 
 
-
-    <!-- =================================================
+    <!-- =====================================================
          EMPLOYEES
-    ================================================= -->
+    ===================================================== -->
 
     <section
       id="employees"
@@ -911,9 +829,7 @@
               رقم الموظف
             </label>
 
-            <input
-              id="employeeNumber"
-            >
+            <input id="employeeNumber">
 
           </div>
 
@@ -924,9 +840,7 @@
               القسم
             </label>
 
-            <input
-              id="employeeDepartment"
-            >
+            <input id="employeeDepartment">
 
           </div>
 
@@ -937,9 +851,7 @@
               المسمى الوظيفي
             </label>
 
-            <input
-              id="employeeJobTitle"
-            >
+            <input id="employeeJobTitle">
 
           </div>
 
@@ -1002,7 +914,6 @@
               حفظ البيانات
             </button>
 
-
             <button
               type="button"
               id="cancelEmployeeForm"
@@ -1046,10 +957,9 @@
     </section>
 
 
-
-    <!-- =================================================
+    <!-- =====================================================
          ADMIN ATTENDANCE
-    ================================================= -->
+    ===================================================== -->
 
     <section
       id="adminAttendance"
@@ -1105,10 +1015,9 @@
     </section>
 
 
-
-    <!-- =================================================
+    <!-- =====================================================
          ADMIN LEAVES
-    ================================================= -->
+    ===================================================== -->
 
     <section
       id="adminLeaves"
@@ -1163,7 +1072,6 @@
     </section>
 
 
-
     <footer>
       DAWAMI1 © 2026
     </footer>
@@ -1173,15 +1081,8 @@
 </div>
 
 
-
-<!-- =====================================================
-     SCRIPTS
-===================================================== -->
-
 <script src="assets/config.js"></script>
-
 <script src="assets/app.js"></script>
 
 </body>
-
 </html>
