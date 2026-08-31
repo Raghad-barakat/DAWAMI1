@@ -2141,6 +2141,382 @@ async function initializeApp() {
 
 
 initializeApp();
+// =====================================================
+// ADMIN - EMPLOYEES
+// =====================================================
+
+async function loadEmployees() {
+
+  if (!currentProfile || currentProfile.role !== "admin") {
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .order("full_name", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    alert("تعذر تحميل الموظفين.");
+    return;
+  }
+
+  renderEmployees(data || []);
+}
+
+
+// =====================================================
+// RENDER EMPLOYEES
+// =====================================================
+
+function renderEmployees(employees) {
+
+  const table = $("employeesTable");
+
+  if (!table) return;
+
+  if (!employees.length) {
+
+    table.innerHTML = `
+      <tr>
+        <td colspan="8" class="empty-state">
+          لا يوجد موظفون.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  table.innerHTML = employees.map(employee => {
+
+    const active =
+      employee.is_active !== false;
+
+    return `
+      <tr>
+
+        <td>
+          <strong>
+            ${employee.full_name || "—"}
+          </strong>
+        </td>
+
+        <td>
+          ${employee.email || "—"}
+        </td>
+
+        <td>
+          ${employee.department || "—"}
+        </td>
+
+        <td>
+          ${formatMoney(employee.monthly_salary)}
+        </td>
+
+        <td>
+          ${employee.work_hours_per_day || 8}
+        </td>
+
+        <td>
+          ${employee.work_days_per_week || 6}
+        </td>
+
+        <td>
+          <span class="pill ${
+            active ? "success" : "bad"
+          }">
+            ${active ? "نشط" : "غير نشط"}
+          </span>
+        </td>
+
+        <td>
+
+          <button
+            class="secondary-button"
+            onclick="editEmployee('${employee.id}')">
+            تعديل
+          </button>
+
+        </td>
+
+      </tr>
+    `;
+
+  }).join("");
+}
+
+
+// =====================================================
+// EDIT EMPLOYEE
+// =====================================================
+
+async function editEmployee(id) {
+
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) {
+
+    alert("تعذر تحميل بيانات الموظف.");
+
+    return;
+  }
+
+  $("employeeId").value =
+    data.id;
+
+  $("employeeName").value =
+    data.full_name || "";
+
+  $("employeeEmail").value =
+    data.email || "";
+
+  $("employeeNumber").value =
+    data.employee_number || "";
+
+  $("employeeDepartment").value =
+    data.department || "";
+
+  $("employeeJobTitle").value =
+    data.job_title || "";
+
+  $("employeeSalary").value =
+    data.monthly_salary || 0;
+
+  $("employeeHours").value =
+    data.work_hours_per_day || 8;
+
+  $("employeeDays").value =
+    data.work_days_per_week || 6;
+
+  $("employeeForm")
+    .classList.remove("hidden");
+
+}
+
+
+// =====================================================
+// SAVE EMPLOYEE DATA
+// =====================================================
+
+async function saveEmployee(event) {
+
+  event.preventDefault();
+
+  if (
+    !currentProfile ||
+    currentProfile.role !== "admin"
+  ) {
+
+    alert("ليس لديك صلاحية.");
+
+    return;
+  }
+
+  const id =
+    $("employeeId").value;
+
+  const employee = {
+
+    full_name:
+      $("employeeName").value.trim(),
+
+    email:
+      $("employeeEmail").value.trim(),
+
+    employee_number:
+      $("employeeNumber").value.trim() || null,
+
+    department:
+      $("employeeDepartment").value.trim() || null,
+
+    job_title:
+      $("employeeJobTitle").value.trim() || null,
+
+    monthly_salary:
+      Number($("employeeSalary").value || 0),
+
+    work_hours_per_day:
+      Number($("employeeHours").value || 8),
+
+    work_days_per_week:
+      Number($("employeeDays").value || 6)
+
+  };
+
+
+  if (!employee.full_name) {
+
+    alert("اكتبي اسم الموظف.");
+
+    return;
+  }
+
+
+  if (!employee.email) {
+
+    alert("اكتبي بريد الموظف.");
+
+    return;
+  }
+
+
+  // تعديل موظف موجود
+  if (id) {
+
+    const { error } =
+      await supabaseClient
+        .from("profiles")
+        .update(employee)
+        .eq("id", id);
+
+    if (error) {
+
+      console.error(error);
+
+      alert(
+        "تعذر حفظ بيانات الموظف: " +
+        error.message
+      );
+
+      return;
+    }
+
+    alert("تم تحديث بيانات الموظف.");
+
+  }
+
+
+  // موظف جديد
+  else {
+
+    alert(
+      "بيانات الموظف جاهزة، لكن إنشاء حساب تسجيل الدخول يحتاج ربطًا خادميًا آمنًا مع Supabase Auth."
+    );
+
+    return;
+  }
+
+
+  $("employeeForm").reset();
+
+  $("employeeId").value = "";
+
+  $("employeeForm")
+    .classList.add("hidden");
+
+  await loadEmployees();
+
+}
+
+
+// =====================================================
+// EMPLOYEE FORM EVENTS
+// =====================================================
+
+function setupEmployeeManagement() {
+
+  const form =
+    $("employeeForm");
+
+  const showButton =
+    $("showEmployeeForm");
+
+  const cancelButton =
+    $("cancelEmployeeForm");
+
+
+  if (showButton) {
+
+    showButton.addEventListener(
+      "click",
+      () => {
+
+        $("employeeId").value = "";
+
+        form.reset();
+
+        $("employeeHours").value = 8;
+
+        $("employeeDays").value = 6;
+
+        form.classList.remove(
+          "hidden"
+        );
+
+      }
+    );
+
+  }
+
+
+  if (cancelButton) {
+
+    cancelButton.addEventListener(
+      "click",
+      () => {
+
+        form.reset();
+
+        $("employeeId").value = "";
+
+        form.classList.add(
+          "hidden"
+        );
+
+      }
+    );
+
+  }
+
+
+  if (form) {
+
+    form.addEventListener(
+      "submit",
+      saveEmployee
+    );
+
+  }
+
+}
+
+
+// =====================================================
+// ADMIN NAVIGATION
+// =====================================================
+
+function setupAdminAccess() {
+
+  if (
+    !currentProfile ||
+    currentProfile.role !== "admin"
+  ) {
+
+    return;
+  }
+
+
+  $("adminEmployeesNav")
+    ?.classList.remove("hidden");
+
+  $("adminAttendanceNav")
+    ?.classList.remove("hidden");
+
+  $("adminLeavesNav")
+    ?.classList.remove("hidden");
+
+
+  setupEmployeeManagement();
+
+  loadEmployees();
+
+}
 
 
 // =====================================================
