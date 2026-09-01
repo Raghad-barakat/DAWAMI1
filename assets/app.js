@@ -1,13 +1,3 @@
-/* =========================================================
-   DAWAMI1 - APP.JS
-   FINAL VERSION
-   ========================================================= */
-
-
-/* =========================================================
-   SUPABASE CONFIGURATION
-   ========================================================= */
-
 const SUPABASE_URL =
   window.WORKTRACK_CONFIG?.SUPABASE_URL ||
   window.DAWAMI_CONFIG?.SUPABASE_URL ||
@@ -18,77 +8,32 @@ const SUPABASE_KEY =
   window.DAWAMI_CONFIG?.SUPABASE_ANON_KEY ||
   window.SUPABASE_ANON_KEY;
 
-
-/* =========================================================
-   BASIC CHECKS
-   ========================================================= */
-
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error(
-    "DAWAMI1: Supabase configuration missing."
-  );
-
-  alert(
-    "تعذر تشغيل النظام: إعدادات Supabase غير موجودة."
-  );
-
-  throw new Error(
-    "Supabase configuration missing"
-  );
+  console.error("DAWAMI1: Supabase configuration missing.");
+  alert("تعذر تشغيل النظام: إعدادات Supabase غير موجودة.");
+  throw new Error("Supabase configuration missing");
 }
-
 
 if (!window.supabase) {
-  console.error(
-    "DAWAMI1: Supabase library is not loaded."
-  );
-
-  alert(
-    "تعذر تشغيل النظام: مكتبة Supabase غير محملة."
-  );
-
-  throw new Error(
-    "Supabase library missing"
-  );
+  console.error("DAWAMI1: Supabase library is not loaded.");
+  alert("تعذر تشغيل النظام: مكتبة Supabase غير محملة.");
+  throw new Error("Supabase library missing");
 }
 
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
-/* =========================================================
-   SUPABASE CLIENT
-   ========================================================= */
-
-const supabase =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
-
-
-/* =========================================================
-   EDGE FUNCTION
-   ========================================================= */
-
-const FUNCTION_NAME =
-  "employee-access";
-
-
-/* =========================================================
-   GLOBAL STATE
-   ========================================================= */
+const FUNCTION_NAME = "employee-access";
 
 let currentUser = null;
 let currentProfile = null;
 let currentRole = null;
 
-
-/* =========================================================
-   HELPERS
-   ========================================================= */
-
 function $(id) {
   return document.getElementById(id);
 }
-
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -98,7 +43,6 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
-
 
 function money(value) {
   const number = Number(value || 0);
@@ -112,108 +56,55 @@ function money(value) {
   );
 }
 
-
 function minutesToHours(minutes) {
-  const total = Math.max(
-    0,
-    Number(minutes || 0)
-  );
+  const total = Math.max(0, Number(minutes || 0));
+  const hours = Math.floor(total / 60);
+  const mins = total % 60;
 
-  const hours =
-    Math.floor(total / 60);
-
-  const mins =
-    total % 60;
-
-  return (
-    `${hours}:${String(mins).padStart(2, "0")}`
-  );
+  return `${hours}:${String(mins).padStart(2, "0")}`;
 }
-
 
 function formatTime(value) {
-  if (!value) {
-    return "—";
-  }
+  if (!value) return "—";
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    return "—";
-  }
+  if (Number.isNaN(date.getTime())) return "—";
 
-  return date.toLocaleTimeString(
-    "ar-PS",
-    {
-      hour: "2-digit",
-      minute: "2-digit"
-    }
-  );
+  return date.toLocaleTimeString("ar-PS", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
-
 
 function formatDate(value) {
-  if (!value) {
-    return "—";
-  }
+  if (!value) return "—";
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    return "—";
-  }
+  if (Number.isNaN(date.getTime())) return "—";
 
-  return date.toLocaleDateString(
-    "ar-PS"
-  );
+  return date.toLocaleDateString("ar-PS");
 }
 
+function showMessage(element, message, type = "error") {
+  if (!element) return;
 
-function showMessage(
-  element,
-  message,
-  type = "error"
-) {
-  if (!element) {
-    return;
-  }
-
-  element.innerHTML =
-    `<div class="message ${type}">
+  element.innerHTML = `
+    <div class="message ${type}">
       ${escapeHtml(message)}
-    </div>`;
+    </div>
+  `;
 }
 
-
-/* =========================================================
-   EDGE FUNCTION CALL
-   ========================================================= */
-
-async function callEmployeeFunction(
-  payload
-) {
-
-  const {
-    data: sessionData
-  } =
+async function callEmployeeFunction(payload) {
+  const { data: sessionData } =
     await supabase.auth.getSession();
 
-  const session =
-    sessionData?.session;
+  const session = sessionData?.session;
 
   const headers = {
-    "Content-Type":
-      "application/json"
+    "Content-Type": "application/json"
   };
 
   if (session?.access_token) {
@@ -221,11 +112,7 @@ async function callEmployeeFunction(
       `Bearer ${session.access_token}`;
   }
 
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabase.functions.invoke(
       FUNCTION_NAME,
       {
@@ -234,103 +121,55 @@ async function callEmployeeFunction(
       }
     );
 
-
   if (error) {
-    console.error(
-      "Edge Function error:",
-      error
-    );
-
+    console.error("Edge Function error:", error);
     throw new Error(
-      error.message ||
-      "تعذر الاتصال بالخادم."
+      error.message || "تعذر الاتصال بالخادم."
     );
   }
-
 
   if (!data) {
-    throw new Error(
-      "لم يصل رد من الخادم."
-    );
+    throw new Error("لم يصل رد من الخادم.");
   }
-
 
   if (data.ok === false) {
-    throw new Error(
-      data.error ||
-      "حدث خطأ."
-    );
+    throw new Error(data.error || "حدث خطأ.");
   }
-
 
   return data;
 }
 
-
-/* =========================================================
-   LOGIN UI
-   ========================================================= */
-
 function setupLoginUi() {
-
-  const loginInput =
-    $("email");
+  const loginInput = $("email");
 
   const loginLabel =
-    document.querySelector(
-      'label[for="email"]'
-    );
-
+    document.querySelector('label[for="email"]');
 
   if (loginInput) {
-
-    loginInput.type =
-      "email";
-
-    loginInput.placeholder =
-      "البريد الإلكتروني";
+    loginInput.type = "email";
+    loginInput.placeholder = "البريد الإلكتروني";
   }
 
-
   if (loginLabel) {
-
     loginLabel.textContent =
       "البريد الإلكتروني للأدمن";
   }
 
+  const loginForm = $("loginForm");
 
-  const loginForm =
-    $("loginForm");
+  if (loginForm && !$("employeeQrLoginArea")) {
+    const area = document.createElement("div");
 
-
-  if (
-    loginForm &&
-    !$("employeeQrLoginArea")
-  ) {
-
-    const area =
-      document.createElement(
-        "div"
-      );
-
-    area.id =
-      "employeeQrLoginArea";
-
-    area.style.marginTop =
-      "20px";
-
+    area.id = "employeeQrLoginArea";
+    area.style.marginTop = "20px";
 
     area.innerHTML = `
-
       <div style="
         text-align:center;
         border-top:1px solid #ddd;
         padding-top:18px;
       ">
-
-        <strong>
-          دخول الموظف
-        </strong>
+        <strong>دخول الموظف</strong>
 
         <p style="
           font-size:13px;
@@ -359,16 +198,10 @@ function setupLoginUi() {
           id="employeeQrMessage"
           style="margin-top:10px;"
         ></div>
-
       </div>
-
     `;
 
-
-    loginForm.appendChild(
-      area
-    );
-
+    loginForm.appendChild(area);
 
     $("scanEmployeeQrBtn")
       ?.addEventListener(
@@ -378,104 +211,53 @@ function setupLoginUi() {
   }
 }
 
-
-/* =========================================================
-   QR SCANNER LIBRARY
-   ========================================================= */
-
 async function loadQrLibrary() {
+  if (window.Html5Qrcode) return;
 
-  if (
-    window.Html5Qrcode
-  ) {
-    return;
-  }
+  await new Promise((resolve, reject) => {
+    const script = document.createElement("script");
 
+    script.src =
+      "https://unpkg.com/html5-qrcode";
 
-  await new Promise(
-    (resolve, reject) => {
+    script.onload = resolve;
+    script.onerror = reject;
 
-      const script =
-        document.createElement(
-          "script"
-        );
-
-      script.src =
-        "https://unpkg.com/html5-qrcode";
-
-      script.onload =
-        resolve;
-
-      script.onerror =
-        reject;
-
-      document.head.appendChild(
-        script
-      );
-
-    }
-  );
+    document.head.appendChild(script);
+  });
 }
 
-
-/* =========================================================
-   START QR SCANNER
-   ========================================================= */
-
 async function startQrScanner() {
-
-  const message =
-    $("employeeQrMessage");
-
+  const message = $("employeeQrMessage");
 
   try {
-
     await loadQrLibrary();
 
-
     const reader =
-      new Html5Qrcode(
-        "qrReader"
-      );
-
+      new Html5Qrcode("qrReader");
 
     await reader.start(
-
       {
-        facingMode:
-          "environment"
+        facingMode: "environment"
       },
-
       {
         fps: 10,
-
         qrbox: {
           width: 240,
           height: 240
         }
       },
-
       async decodedText => {
-
         try {
           await reader.stop();
         } catch (_) {}
 
-        await processQrValue(
-          decodedText
-        );
-
+        await processQrValue(decodedText);
       },
-
       () => {}
-
     );
-
   } catch (error) {
-
-    console.error(
-      error
-    );
+    console.error(error);
 
     showMessage(
       message,
@@ -485,52 +267,26 @@ async function startQrScanner() {
   }
 }
 
-
-/* =========================================================
-   PROCESS QR
-   ========================================================= */
-
-async function processQrValue(
-  value
-) {
-
-  const message =
-    $("employeeQrMessage");
-
+async function processQrValue(value) {
+  const message = $("employeeQrMessage");
 
   try {
-
-    let code =
-      String(
-        value || ""
-      ).trim();
-
+    let code = String(value || "").trim();
 
     try {
-
-      const url =
-        new URL(code);
+      const url = new URL(code);
 
       const urlCode =
-        url.searchParams.get(
-          "employee_code"
-        );
+        url.searchParams.get("employee_code");
 
       if (urlCode) {
-        code =
-          urlCode.trim();
+        code = urlCode.trim();
       }
-
     } catch (_) {}
 
-
     if (!code) {
-
-      throw new Error(
-        "QR غير صالح."
-      );
+      throw new Error("QR غير صالح.");
     }
-
 
     showMessage(
       message,
@@ -538,76 +294,41 @@ async function processQrValue(
       "success"
     );
 
-
     const result =
       await callEmployeeFunction({
-
-        action:
-          "employee_login",
-
-        login_code:
-          code
-
+        action: "employee_login",
+        login_code: code
       });
 
-
-    if (
-      !result.action_link
-    ) {
-
-      throw new Error(
-        "تعذر إنشاء جلسة الدخول."
-      );
+    if (!result.action_link) {
+      throw new Error("تعذر إنشاء جلسة الدخول.");
     }
 
-
-    window.location.replace(
-      result.action_link
-    );
-
+    window.location.replace(result.action_link);
   } catch (error) {
-
-    console.error(
-      error
-    );
+    console.error(error);
 
     showMessage(
       message,
-      error.message ||
-      "QR غير صالح.",
+      error.message || "QR غير صالح.",
       "error"
     );
   }
 }
 
-
-/* =========================================================
-   QR URL LOGIN
-   ========================================================= */
-
 async function checkQrUrlLogin() {
-
   const params =
     new URLSearchParams(
       window.location.search
     );
 
-
   const employeeCode =
-    params.get(
-      "employee_code"
-    );
+    params.get("employee_code");
 
-
-  if (!employeeCode) {
-    return false;
-  }
-
+  if (!employeeCode) return false;
 
   try {
-
     document.body.innerHTML = `
-
       <div style="
         min-height:100vh;
         display:flex;
@@ -616,64 +337,30 @@ async function checkQrUrlLogin() {
         direction:rtl;
         font-family:Arial;
       ">
-
-        <div style="
-          text-align:center;
-        ">
-
-          <h2>
-            DAWAMI1
-          </h2>
-
-          <p>
-            جارٍ تسجيل دخول الموظف...
-          </p>
-
+        <div style="text-align:center;">
+          <h2>DAWAMI1</h2>
+          <p>جارٍ تسجيل دخول الموظف...</p>
         </div>
-
       </div>
-
     `;
-
 
     const result =
       await callEmployeeFunction({
-
-        action:
-          "employee_login",
-
-        login_code:
-          employeeCode
-
+        action: "employee_login",
+        login_code: employeeCode
       });
 
-
-    if (
-      !result.action_link
-    ) {
-
-      throw new Error(
-        "تعذر إنشاء جلسة الدخول."
-      );
+    if (!result.action_link) {
+      throw new Error("تعذر إنشاء جلسة الدخول.");
     }
 
-
-    window.location.replace(
-      result.action_link
-    );
-
+    window.location.replace(result.action_link);
 
     return true;
-
   } catch (error) {
-
-    console.error(
-      error
-    );
-
+    console.error(error);
 
     document.body.innerHTML = `
-
       <div style="
         min-height:100vh;
         display:flex;
@@ -683,20 +370,15 @@ async function checkQrUrlLogin() {
         font-family:Arial;
         padding:30px;
       ">
-
         <div style="
           max-width:450px;
           text-align:center;
         ">
-
-          <h2>
-            تعذر تسجيل الدخول
-          </h2>
+          <h2>تعذر تسجيل الدخول</h2>
 
           <p>
             ${escapeHtml(
-              error.message ||
-              "QR غير صالح."
+              error.message || "QR غير صالح."
             )}
           </p>
 
@@ -706,39 +388,22 @@ async function checkQrUrlLogin() {
           >
             العودة
           </button>
-
         </div>
-
       </div>
-
     `;
-
 
     return true;
   }
 }
 
-
-/* =========================================================
-   ADMIN LOGIN
-   ========================================================= */
-
-async function handleLogin(
-  event
-) {
-
+async function handleLogin(event) {
   event.preventDefault();
 
-
   const email =
-    $("email")
-      ?.value
-      .trim();
+    $("email")?.value.trim();
 
   const password =
-    $("password")
-      ?.value;
-
+    $("password")?.value;
 
   const message =
     $("loginMessage");
@@ -746,12 +411,7 @@ async function handleLogin(
   const button =
     $("loginButton");
 
-
-  if (
-    !email ||
-    !password
-  ) {
-
+  if (!email || !password) {
     showMessage(
       message,
       "أدخل البريد وكلمة المرور.",
@@ -761,542 +421,280 @@ async function handleLogin(
     return;
   }
 
-
   if (button) {
-
-    button.disabled =
-      true;
-
-    button.textContent =
-      "جارٍ الدخول...";
+    button.disabled = true;
+    button.textContent = "جارٍ الدخول...";
   }
 
-
   try {
+    const { data, error } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    const {
-      data,
-      error
-    } =
-      await supabase.auth
-        .signInWithPassword({
+    if (error) throw error;
 
-          email,
-          password
-
-        });
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    currentUser =
-      data.user;
-
+    currentUser = data.user;
 
     await loadApplication();
-
   } catch (error) {
-
-    console.error(
-      "Login error:",
-      error
-    );
+    console.error("Login error:", error);
 
     showMessage(
       message,
       error.message ||
-      "بيانات الدخول غير صحيحة.",
+        "بيانات الدخول غير صحيحة.",
       "error"
     );
-
   } finally {
-
     if (button) {
-
-      button.disabled =
-        false;
-
-      button.textContent =
-        "تسجيل الدخول";
+      button.disabled = false;
+      button.textContent = "تسجيل الدخول";
     }
   }
 }
 
-
-/* =========================================================
-   LOAD CURRENT PROFILE
-   ========================================================= */
-
 async function loadCurrentProfile() {
-
   if (!currentUser) {
+    const { data } =
+      await supabase.auth.getUser();
 
-    const {
-      data
-    } =
-      await supabase.auth
-        .getUser();
-
-    currentUser =
-      data?.user;
+    currentUser = data?.user;
   }
 
-
   if (!currentUser) {
-
     throw new Error(
       "لم يتم العثور على المستخدم."
     );
   }
 
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabase
       .from("profiles")
       .select("*")
-      .eq(
-        "id",
-        currentUser.id
-      )
+      .eq("id", currentUser.id)
       .single();
 
+  if (error) throw error;
 
-  if (error) {
-    throw error;
-  }
-
-
-  currentProfile =
-    data;
-
-  currentRole =
-    data.role;
+  currentProfile = data;
+  currentRole = data.role;
 }
 
-
-/* =========================================================
-   LOAD APPLICATION
-   ========================================================= */
-
 async function loadApplication() {
-
   await loadCurrentProfile();
 
-
-  if (
-    !currentProfile.is_active
-  ) {
-
-    await supabase.auth
-      .signOut();
+  if (!currentProfile.is_active) {
+    await supabase.auth.signOut();
 
     throw new Error(
       "هذا الحساب غير نشط."
     );
   }
 
-
   $("loginScreen")
-    ?.classList
-    .add("hidden");
-
+    ?.classList.add("hidden");
 
   $("forgotScreen")
-    ?.classList
-    .add("hidden");
-
+    ?.classList.add("hidden");
 
   $("resetScreen")
-    ?.classList
-    .add("hidden");
-
+    ?.classList.add("hidden");
 
   $("app")
-    ?.classList
-    .remove("hidden");
-
+    ?.classList.remove("hidden");
 
   updateUserUi();
-
   setupRoleUi();
 
   await loadDashboard();
 }
 
-
-/* =========================================================
-   USER UI
-   ========================================================= */
-
 function updateUserUi() {
-
   const name =
     currentProfile?.full_name ||
     "المستخدم";
 
-
   if ($("welcomeText")) {
-
-    $("welcomeText")
-      .textContent =
+    $("welcomeText").textContent =
       `مرحباً ${name}`;
   }
 
-
   if ($("currentDate")) {
-
-    $("currentDate")
-      .textContent =
-      new Date()
-        .toLocaleDateString(
-          "ar-PS",
-          {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-          }
-        );
+    $("currentDate").textContent =
+      new Date().toLocaleDateString(
+        "ar-PS",
+        {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        }
+      );
   }
 }
 
-
-/* =========================================================
-   ROLE UI
-   ========================================================= */
-
 function setupRoleUi() {
-
   const isAdmin =
     currentRole === "admin";
 
   const isHr =
     currentRole === "hr";
 
-
   $("adminEmployeesNav")
-    ?.classList
-    .toggle(
+    ?.classList.toggle(
       "hidden",
       !isAdmin
     );
 
-
   $("adminAttendanceNav")
-    ?.classList
-    .toggle(
+    ?.classList.toggle(
       "hidden",
-      !(
-        isAdmin ||
-        isHr
-      )
+      !(isAdmin || isHr)
     );
-
 
   $("adminLeavesNav")
-    ?.classList
-    .toggle(
+    ?.classList.toggle(
       "hidden",
-      !(
-        isAdmin ||
-        isHr
-      )
+      !(isAdmin || isHr)
     );
 }
-
-
-/* =========================================================
-   NAVIGATION
-   ========================================================= */
 
 function setupNavigation() {
-
   document
-    .querySelectorAll(
-      ".nav-btn"
-    )
-    .forEach(
-      button => {
+    .querySelectorAll(".nav-btn")
+    .forEach(button => {
+      button.addEventListener(
+        "click",
+        async () => {
+          const page =
+            button.dataset.page;
 
-        button.addEventListener(
-          "click",
-          async () => {
+          document
+            .querySelectorAll(".nav-btn")
+            .forEach(item =>
+              item.classList.remove("active")
+            );
 
-            const page =
-              button.dataset.page;
+          button.classList.add("active");
 
+          document
+            .querySelectorAll(".page")
+            .forEach(section =>
+              section.classList.remove("active")
+            );
 
-            document
-              .querySelectorAll(
-                ".nav-btn"
-              )
-              .forEach(
-                item =>
-                  item.classList
-                    .remove(
-                      "active"
-                    )
-              );
+          $(page)
+            ?.classList.add("active");
 
-
-            button.classList
-              .add("active");
-
-
-            document
-              .querySelectorAll(
-                ".page"
-              )
-              .forEach(
-                section =>
-                  section.classList
-                    .remove(
-                      "active"
-                    )
-              );
-
-
-            $(page)
-              ?.classList
-              .add("active");
-
-
-            try {
-
-              if (
-                page ===
-                "dashboard"
-              ) {
-
-                await loadDashboard();
-
-              } else if (
-                page ===
-                "attendance"
-              ) {
-
-                await loadAttendance();
-
-              } else if (
-                page ===
-                "leave"
-              ) {
-
-                await loadLeaves();
-
-              } else if (
-                page ===
-                "payroll"
-              ) {
-
-                await loadPayroll();
-
-              } else if (
-                page ===
-                "employees"
-              ) {
-
-                await loadEmployees();
-
-              } else if (
-                page ===
-                "adminAttendance"
-              ) {
-
-                await loadAdminAttendance();
-
-              } else if (
-                page ===
-                "adminLeaves"
-              ) {
-
-                await loadAdminLeaves();
-
-              }
-
-            } catch (error) {
-
-              console.error(
-                error
-              );
-
+          try {
+            if (page === "dashboard") {
+              await loadDashboard();
+            } else if (page === "attendance") {
+              await loadAttendance();
+            } else if (page === "leave") {
+              await loadLeaves();
+            } else if (page === "payroll") {
+              await loadPayroll();
+            } else if (page === "employees") {
+              await loadEmployees();
+            } else if (page === "adminAttendance") {
+              await loadAdminAttendance();
+            } else if (page === "adminLeaves") {
+              await loadAdminLeaves();
             }
-
+          } catch (error) {
+            console.error(error);
           }
-        );
-
-      }
-    );
+        }
+      );
+    });
 }
 
-
-/* =========================================================
-   DASHBOARD
-   ========================================================= */
-
 async function loadDashboard() {
-
   await loadTodayAttendance();
-
   await loadAttendanceSummary();
-
   await loadRecentAttendance();
-
   await loadPayroll();
 }
 
-
-/* =========================================================
-   TODAY ATTENDANCE
-   ========================================================= */
-
 async function loadTodayAttendance() {
-
-  if (!currentUser) {
-    return;
-  }
-
+  if (!currentUser) return;
 
   const today =
-    new Date()
-      .toLocaleDateString(
-        "en-CA"
-      );
+    new Date().toLocaleDateString("en-CA");
 
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabase
       .from("attendance")
       .select("*")
-      .eq(
-        "employee_id",
-        currentUser.id
-      )
-      .eq(
-        "work_date",
-        today
-      )
-      .order(
-        "created_at",
-        {
-          ascending: false
-        }
-      )
+      .eq("employee_id", currentUser.id)
+      .eq("work_date", today)
+      .order("created_at", {
+        ascending: false
+      })
       .limit(1);
 
-
   if (error) {
-
     console.error(
       "تعذر تحميل الدوام:",
       error
     );
-
     return;
   }
 
-
-  const record =
-    data?.[0];
-
-
-  const button =
-    $("attendanceButton");
-
+  const record = data?.[0];
+  const button = $("attendanceButton");
 
   if (!record) {
-
     if ($("todayStatus")) {
-
-      $("todayStatus")
-        .textContent =
+      $("todayStatus").textContent =
         "لم تسجل حضورك";
     }
 
-
     if ($("todayMessage")) {
-
-      $("todayMessage")
-        .textContent =
+      $("todayMessage").textContent =
         "اضغط لتسجيل بداية الدوام.";
     }
 
-
     if (button) {
-
-      button.textContent =
-        "تسجيل حضور";
-
-      button.disabled =
-        false;
+      button.textContent = "تسجيل حضور";
+      button.disabled = false;
     }
 
     return;
   }
 
-
-  if (
-    record.clock_in &&
-    !record.clock_out
-  ) {
-
+  if (record.clock_in && !record.clock_out) {
     if ($("todayStatus")) {
-
-      $("todayStatus")
-        .textContent =
+      $("todayStatus").textContent =
         "الدوام مفتوح";
     }
 
-
     if ($("todayMessage")) {
-
-      $("todayMessage")
-        .textContent =
+      $("todayMessage").textContent =
         `بدأت الساعة ${formatTime(
           record.clock_in
         )}`;
     }
 
-
     if (button) {
-
-      button.textContent =
-        "تسجيل انصراف";
-
-      button.disabled =
-        false;
+      button.textContent = "تسجيل انصراف";
+      button.disabled = false;
     }
 
     return;
   }
 
-
-  if (
-    record.clock_in &&
-    record.clock_out
-  ) {
-
+  if (record.clock_in && record.clock_out) {
     if ($("todayStatus")) {
-
-      $("todayStatus")
-        .textContent =
+      $("todayStatus").textContent =
         "تم إنهاء الدوام";
     }
 
-
     if ($("todayMessage")) {
-
-      $("todayMessage")
-        .textContent =
+      $("todayMessage").textContent =
         `من ${formatTime(
           record.clock_in
         )} إلى ${formatTime(
@@ -1304,244 +702,122 @@ async function loadTodayAttendance() {
         )}`;
     }
 
-
     if (button) {
-
-      button.textContent =
-        "تم تسجيل الدوام";
-
-      button.disabled =
-        true;
+      button.textContent = "تم تسجيل الدوام";
+      button.disabled = true;
     }
   }
 }
 
-
-/* =========================================================
-   CLOCK IN / OUT
-   ========================================================= */
-
 async function handleAttendanceButton() {
-
   const button =
     $("attendanceButton");
 
+  if (!button) return;
 
-  if (!button) {
-    return;
-  }
-
-
-  button.disabled =
-    true;
-
+  button.disabled = true;
 
   try {
-
     const text =
-      button.textContent ||
-      "";
+      button.textContent || "";
 
+    if (text.includes("انصراف")) {
+      const { error } =
+        await supabase.rpc("clock_out");
 
-    if (
-      text.includes(
-        "انصراف"
-      )
-    ) {
-
-      const {
-        error
-      } =
-        await supabase.rpc(
-          "clock_out"
-        );
-
-
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
     } else {
+      const { error } =
+        await supabase.rpc("clock_in");
 
-      const {
-        error
-      } =
-        await supabase.rpc(
-          "clock_in"
-        );
-
-
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
     }
 
-
     await loadDashboard();
-
   } catch (error) {
-
-    console.error(
-      error
-    );
+    console.error(error);
 
     alert(
       error.message ||
       "تعذر تسجيل الدوام."
     );
 
-    button.disabled =
-      false;
+    button.disabled = false;
   }
 }
 
-
-/* =========================================================
-   ATTENDANCE SUMMARY
-   ========================================================= */
-
 async function loadAttendanceSummary() {
+  if (!currentUser) return;
 
-  if (!currentUser) {
-    return;
-  }
-
-
-  const firstDay =
-    new Date();
+  const firstDay = new Date();
 
   firstDay.setDate(1);
 
-
   const firstDayString =
-    firstDay
-      .toLocaleDateString(
-        "en-CA"
-      );
+    firstDay.toLocaleDateString("en-CA");
 
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabase
       .from("attendance")
       .select(
         "regular_minutes,overtime_minutes"
       )
-      .eq(
-        "employee_id",
-        currentUser.id
-      )
-      .gte(
-        "work_date",
-        firstDayString
-      );
-
+      .eq("employee_id", currentUser.id)
+      .gte("work_date", firstDayString);
 
   if (error) {
-
-    console.error(
-      error
-    );
-
+    console.error(error);
     return;
   }
 
-
   const regular =
-    (data || [])
-      .reduce(
-        (
-          total,
-          row
-        ) =>
-          total +
-          Number(
-            row.regular_minutes ||
-            0
-          ),
-        0
-      );
-
+    (data || []).reduce(
+      (total, row) =>
+        total +
+        Number(
+          row.regular_minutes || 0
+        ),
+      0
+    );
 
   const overtime =
-    (data || [])
-      .reduce(
-        (
-          total,
-          row
-        ) =>
-          total +
-          Number(
-            row.overtime_minutes ||
-            0
-          ),
-        0
-      );
-
+    (data || []).reduce(
+      (total, row) =>
+        total +
+        Number(
+          row.overtime_minutes || 0
+        ),
+      0
+    );
 
   if ($("monthlyHours")) {
-
-    $("monthlyHours")
-      .textContent =
-      minutesToHours(
-        regular
-      );
+    $("monthlyHours").textContent =
+      minutesToHours(regular);
   }
 
-
   if ($("overtimeHours")) {
-
-    $("overtimeHours")
-      .textContent =
-      minutesToHours(
-        overtime
-      );
+    $("overtimeHours").textContent =
+      minutesToHours(overtime);
   }
 }
 
-
-/* =========================================================
-   RECENT ATTENDANCE
-   ========================================================= */
-
 async function loadRecentAttendance() {
+  if (!currentUser) return;
 
-  if (!currentUser) {
-    return;
-  }
-
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabase
       .from("attendance")
       .select("*")
-      .eq(
-        "employee_id",
-        currentUser.id
-      )
-      .order(
-        "work_date",
-        {
-          ascending: false
-        }
-      )
+      .eq("employee_id", currentUser.id)
+      .order("work_date", {
+        ascending: false
+      })
       .limit(10);
 
-
   if (error) {
-
-    console.error(
-      error
-    );
-
+    console.error(error);
     return;
   }
-
 
   renderAttendanceTable(
     $("recentAttendance"),
@@ -1549,46 +825,22 @@ async function loadRecentAttendance() {
   );
 }
 
-
-/* =========================================================
-   ALL ATTENDANCE
-   ========================================================= */
-
 async function loadAttendance() {
+  if (!currentUser) return;
 
-  if (!currentUser) {
-    return;
-  }
-
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabase
       .from("attendance")
       .select("*")
-      .eq(
-        "employee_id",
-        currentUser.id
-      )
-      .order(
-        "work_date",
-        {
-          ascending: false
-        }
-      );
-
+      .eq("employee_id", currentUser.id)
+      .order("work_date", {
+        ascending: false
+      });
 
   if (error) {
-
-    alert(
-      error.message
-    );
-
+    alert(error.message);
     return;
   }
-
 
   renderAttendanceTable(
     $("allAttendance"),
@@ -1596,23 +848,10 @@ async function loadAttendance() {
   );
 }
 
-
-/* =========================================================
-   ATTENDANCE TABLE
-   ========================================================= */
-
-function renderAttendanceTable(
-  tbody,
-  rows
-) {
-
-  if (!tbody) {
-    return;
-  }
-
+function renderAttendanceTable(tbody, rows) {
+  if (!tbody) return;
 
   if (!rows.length) {
-
     tbody.innerHTML = `
       <tr>
         <td colspan="6">
@@ -1624,94 +863,56 @@ function renderAttendanceTable(
     return;
   }
 
-
   tbody.innerHTML =
     rows
-      .map(
-        row => {
+      .map(row => {
+        const regular =
+          Number(
+            row.regular_minutes || 0
+          );
 
-          const regular =
-            Number(
-              row.regular_minutes ||
-              0
-            );
+        const overtime =
+          Number(
+            row.overtime_minutes || 0
+          );
 
+        return `
+          <tr>
+            <td>
+              ${escapeHtml(row.work_date)}
+            </td>
 
-          const overtime =
-            Number(
-              row.overtime_minutes ||
-              0
-            );
+            <td>
+              ${formatTime(row.clock_in)}
+            </td>
 
+            <td>
+              ${formatTime(row.clock_out)}
+            </td>
 
-          return `
+            <td>
+              ${minutesToHours(regular)}
+            </td>
 
-            <tr>
+            <td>
+              ${minutesToHours(overtime)}
+            </td>
 
-              <td>
-                ${escapeHtml(
-                  row.work_date
-                )}
-              </td>
-
-              <td>
-                ${formatTime(
-                  row.clock_in
-                )}
-              </td>
-
-              <td>
-                ${formatTime(
-                  row.clock_out
-                )}
-              </td>
-
-              <td>
-                ${minutesToHours(
-                  regular
-                )}
-              </td>
-
-              <td>
-                ${minutesToHours(
-                  overtime
-                )}
-              </td>
-
-              <td>
-                ${escapeHtml(
-                  row.status ||
-                  "—"
-                )}
-              </td>
-
-            </tr>
-
-          `;
-        }
-      )
+            <td>
+              ${escapeHtml(
+                row.status || "—"
+              )}
+            </td>
+          </tr>
+        `;
+      })
       .join("");
 }
 
-
-/* =========================================================
-   EMPLOYEES
-   ========================================================= */
-
 async function loadEmployees() {
+  if (currentRole !== "admin") return;
 
-  if (
-    currentRole !==
-    "admin"
-  ) {
-    return;
-  }
-
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabase
       .from("profiles")
       .select(`
@@ -1728,46 +929,23 @@ async function loadEmployees() {
         is_active,
         login_code
       `)
-      .order(
-        "full_name"
-      );
-
+      .order("full_name");
 
   if (error) {
-
-    alert(
-      error.message
-    );
-
+    alert(error.message);
     return;
   }
 
-
-  renderEmployees(
-    data || []
-  );
+  renderEmployees(data || []);
 }
 
-
-/* =========================================================
-   RENDER EMPLOYEES
-   ========================================================= */
-
-function renderEmployees(
-  employees
-) {
-
+function renderEmployees(employees) {
   const tbody =
     $("employeesTable");
 
-
-  if (!tbody) {
-    return;
-  }
-
+  if (!tbody) return;
 
   if (!employees.length) {
-
     tbody.innerHTML = `
       <tr>
         <td colspan="8">
@@ -1779,134 +957,98 @@ function renderEmployees(
     return;
   }
 
-
   tbody.innerHTML =
     employees
-      .map(
-        employee => `
+      .map(employee => `
+        <tr>
+          <td>
+            ${escapeHtml(
+              employee.full_name
+            )}
+          </td>
 
-          <tr>
+          <td>
+            ${escapeHtml(
+              employee.identity_number || "—"
+            )}
+          </td>
 
-            <td>
-              ${escapeHtml(
-                employee.full_name
-              )}
-            </td>
+          <td>
+            ${escapeHtml(
+              employee.department || "—"
+            )}
+          </td>
 
-            <td>
-              ${escapeHtml(
-                employee.identity_number ||
-                "—"
-              )}
-            </td>
+          <td>
+            ${money(
+              employee.monthly_salary
+            )}
+          </td>
 
-            <td>
-              ${escapeHtml(
-                employee.department ||
-                "—"
-              )}
-            </td>
+          <td>
+            ${escapeHtml(
+              employee.work_hours_per_day
+            )}
+          </td>
 
-            <td>
-              ${money(
-                employee.monthly_salary
-              )}
-            </td>
+          <td>
+            ${escapeHtml(
+              employee.work_days_per_week
+            )}
+          </td>
 
-            <td>
-              ${escapeHtml(
-                employee.work_hours_per_day
-              )}
-            </td>
+          <td>
+            ${
+              employee.is_active
+                ? "فعال"
+                : "غير فعال"
+            }
+          </td>
 
-            <td>
-              ${escapeHtml(
-                employee.work_days_per_week
-              )}
-            </td>
-
-            <td>
-              ${
-                employee.is_active
-                  ? "فعال"
-                  : "غير فعال"
-              }
-            </td>
-
-            <td>
-
-              <button
-                class="secondary-button small-button"
-                onclick="showEmployeeQr('${employee.id}')"
-              >
-                QR
-              </button>
-
-            </td>
-
-          </tr>
-
-        `
-      )
+          <td>
+            <button
+              class="secondary-button small-button"
+              onclick="showEmployeeQr('${employee.id}')"
+            >
+              QR
+            </button>
+          </td>
+        </tr>
+      `)
       .join("");
 }
 
-
-/* =========================================================
-   EMPLOYEE FORM
-   ========================================================= */
-
 function setupEmployeeForm() {
-
   const button =
     $("showEmployeeForm");
 
   const form =
     $("employeeForm");
 
-
   button?.addEventListener(
     "click",
     () => {
-
-      form?.classList
-        .toggle(
-          "hidden"
-        );
-
+      form?.classList.toggle("hidden");
     }
   );
-
 
   $("cancelEmployeeForm")
     ?.addEventListener(
       "click",
       () => {
-
         form?.reset();
 
-        form?.classList
-          .add("hidden");
-
+        form?.classList.add("hidden");
 
         if ($("employeeHours")) {
-
-          $("employeeHours")
-            .value =
-            "8";
+          $("employeeHours").value = "8";
         }
-
 
         if ($("employeeDays")) {
-
-          $("employeeDays")
-            .value =
-            "6";
+          $("employeeDays").value = "6";
         }
-
       }
     );
-
 
   form?.addEventListener(
     "submit",
@@ -1914,35 +1056,19 @@ function setupEmployeeForm() {
   );
 }
 
-
-/* =========================================================
-   EXTRA EMPLOYEE FIELDS
-   ========================================================= */
-
 function ensureEmployeeExtraFields() {
-
   const employeeForm =
     $("employeeForm");
 
-
-  if (!employeeForm) {
-    return;
-  }
-
+  if (!employeeForm) return;
 
   if (!$("employeeIdentity")) {
-
     const group =
-      document.createElement(
-        "div"
-      );
+      document.createElement("div");
 
-    group.className =
-      "form-group";
-
+    group.className = "form-group";
 
     group.innerHTML = `
-
       <label for="employeeIdentity">
         رقم الهوية
       </label>
@@ -1955,46 +1081,31 @@ function ensureEmployeeExtraFields() {
         placeholder="رقم هوية الموظف"
         required
       >
-
     `;
-
 
     const nameInput =
       $("employeeName");
-
 
     const nameGroup =
       nameInput?.closest(
         ".form-group"
       );
 
-
-    if (
-      nameGroup?.parentNode
-    ) {
-
-      nameGroup.parentNode
-        .insertBefore(
-          group,
-          nameGroup.nextSibling
-        );
+    if (nameGroup?.parentNode) {
+      nameGroup.parentNode.insertBefore(
+        group,
+        nameGroup.nextSibling
+      );
     }
   }
 
-
   if (!$("employeePhone")) {
-
     const group =
-      document.createElement(
-        "div"
-      );
+      document.createElement("div");
 
-    group.className =
-      "form-group";
-
+    group.className = "form-group";
 
     group.innerHTML = `
-
       <label for="employeePhone">
         رقم الهاتف
       </label>
@@ -2006,92 +1117,54 @@ function ensureEmployeeExtraFields() {
         placeholder="رقم هاتف الموظف"
         required
       >
-
     `;
-
 
     const identity =
       $("employeeIdentity");
-
 
     const identityGroup =
       identity?.closest(
         ".form-group"
       );
 
-
-    if (
-      identityGroup?.parentNode
-    ) {
-
-      identityGroup.parentNode
-        .insertBefore(
-          group,
-          identityGroup.nextSibling
-        );
+    if (identityGroup?.parentNode) {
+      identityGroup.parentNode.insertBefore(
+        group,
+        identityGroup.nextSibling
+      );
     }
   }
-
 
   const email =
     $("employeeEmail");
 
-
   if (email) {
-
     const emailGroup =
       email.closest(
         ".form-group"
       );
 
-
-    email.required =
-      false;
-
-    email.value =
-      "";
-
+    email.required = false;
+    email.value = "";
 
     if (emailGroup) {
-
-      emailGroup.style.display =
-        "none";
+      emailGroup.style.display = "none";
     }
   }
 }
 
-
-/* =========================================================
-   IDENTITY NUMBER
-   ========================================================= */
-
 function getIdentityNumber() {
-
   return (
     $("employeeIdentity")
       ?.value
-      .trim() ||
-    ""
+      .trim() || ""
   );
 }
 
-
-/* =========================================================
-   SAVE EMPLOYEE
-   ========================================================= */
-
-async function saveEmployee(
-  event
-) {
-
+async function saveEmployee(event) {
   event.preventDefault();
 
-
-  if (
-    currentRole !==
-    "admin"
-  ) {
-
+  if (currentRole !== "admin") {
     alert(
       "الأدمن فقط يستطيع إضافة الموظفين."
     );
@@ -2099,27 +1172,18 @@ async function saveEmployee(
     return;
   }
 
-
   const button =
     event.submitter;
 
-
   if (button) {
-
-    button.disabled =
-      true;
-
+    button.disabled = true;
     button.textContent =
       "جارٍ إنشاء الموظف...";
   }
 
-
   try {
-
     const payload = {
-
-      action:
-        "create_employee",
+      action: "create_employee",
 
       full_name:
         $("employeeName")
@@ -2152,210 +1216,128 @@ async function saveEmployee(
       monthly_salary:
         Number(
           $("employeeSalary")
-            ?.value ||
-          0
+            ?.value || 0
         ),
 
       work_hours_per_day:
         Number(
           $("employeeHours")
-            ?.value ||
-          8
+            ?.value || 8
         ),
 
       work_days_per_week:
         Number(
           $("employeeDays")
-            ?.value ||
-          6
+            ?.value || 6
         ),
 
-      role:
-        "employee"
+      role: "employee"
     };
-
 
     if (
       !payload.full_name ||
       !payload.identity_number ||
       !payload.phone
     ) {
-
       throw new Error(
         "الاسم ورقم الهوية ورقم الهاتف مطلوبة."
       );
     }
-
 
     const result =
       await callEmployeeFunction(
         payload
       );
 
-
-    if (
-      !result.employee
-    ) {
-
+    if (!result.employee) {
       throw new Error(
         "تم إنشاء الحساب ولكن لم تصل بيانات الموظف."
       );
     }
 
-
     alert(
       `تم إنشاء الموظف ${result.employee.full_name} بنجاح.`
     );
 
-
     $("employeeForm")
       ?.reset();
-
 
     $("employeeForm")
       ?.classList
       .add("hidden");
 
-
     if ($("employeeHours")) {
-
-      $("employeeHours")
-        .value =
-        "8";
+      $("employeeHours").value = "8";
     }
-
 
     if ($("employeeDays")) {
-
-      $("employeeDays")
-        .value =
-        "6";
+      $("employeeDays").value = "6";
     }
-
 
     await loadEmployees();
 
-
-    if (
-      result.qr_url
-    ) {
-
+    if (result.qr_url) {
       await showQrModal(
         result.employee,
         result.qr_url
       );
     }
-
-
   } catch (error) {
-
-    console.error(
-      error
-    );
+    console.error(error);
 
     alert(
       error.message ||
       "تعذر إنشاء الموظف."
     );
-
   } finally {
-
     if (button) {
-
-      button.disabled =
-        false;
-
+      button.disabled = false;
       button.textContent =
         "حفظ البيانات";
     }
   }
 }
 
-
-/* =========================================================
-   QR CODE LIBRARY
-   ========================================================= */
-
 async function loadQrCodeLibrary() {
+  if (window.QRCode) return;
 
-  if (
-    window.QRCode
-  ) {
-    return;
-  }
+  await new Promise((resolve, reject) => {
+    const script =
+      document.createElement("script");
 
+    script.src =
+      "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
 
-  await new Promise(
-    (resolve, reject) => {
+    script.onload = resolve;
+    script.onerror = reject;
 
-      const script =
-        document.createElement(
-          "script"
-        );
-
-
-      script.src =
-        "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
-
-
-      script.onload =
-        resolve;
-
-      script.onerror =
-        reject;
-
-
-      document.head.appendChild(
-        script
-      );
-    }
-  );
+    document.head.appendChild(script);
+  });
 }
 
-
-/* =========================================================
-   GET EMPLOYEE QR
-   ========================================================= */
-
-async function showEmployeeQr(
-  employeeId
-) {
-
+async function showEmployeeQr(employeeId) {
   try {
-
     const result =
       await callEmployeeFunction({
-
-        action:
-          "get_employee_qr",
-
-        employee_id:
-          employeeId
-
+        action: "get_employee_qr",
+        employee_id: employeeId
       });
-
 
     if (
       !result.employee ||
       !result.qr_url
     ) {
-
       throw new Error(
         "لم تصل بيانات QR."
       );
     }
 
-
     await showQrModal(
       result.employee,
       result.qr_url
     );
-
   } catch (error) {
-
-    console.error(
-      error
-    );
+    console.error(error);
 
     alert(
       error.message ||
@@ -2364,34 +1346,18 @@ async function showEmployeeQr(
   }
 }
 
-
-/* =========================================================
-   QR MODAL
-   ========================================================= */
-
-async function showQrModal(
-  employee,
-  qrUrl
-) {
-
+async function showQrModal(employee, qrUrl) {
   await loadQrCodeLibrary();
-
 
   let modal =
     $("employeeQrModal");
 
-
   if (!modal) {
-
     modal =
-      document.createElement(
-        "div"
-      );
-
+      document.createElement("div");
 
     modal.id =
       "employeeQrModal";
-
 
     modal.style.cssText = `
       position:fixed;
@@ -2404,15 +1370,10 @@ async function showQrModal(
       direction:rtl;
     `;
 
-
-    document.body.appendChild(
-      modal
-    );
+    document.body.appendChild(modal);
   }
 
-
   modal.innerHTML = `
-
     <div style="
       background:white;
       border-radius:18px;
@@ -2421,10 +1382,7 @@ async function showQrModal(
       text-align:center;
       color:#111;
     ">
-
-      <h2>
-        QR الموظف
-      </h2>
+      <h2>QR الموظف</h2>
 
       <h3>
         ${escapeHtml(
@@ -2435,8 +1393,7 @@ async function showQrModal(
       <p>
         رقم الهوية:
         ${escapeHtml(
-          employee.identity_number ||
-          "—"
+          employee.identity_number || "—"
         )}
       </p>
 
@@ -2470,148 +1427,78 @@ async function showQrModal(
       >
         إغلاق
       </button>
-
     </div>
-
   `;
 
-
-  modal.style.display =
-    "flex";
-
+  modal.style.display = "flex";
 
   const container =
     $("employeeQrCanvas");
 
-
-  new QRCode(
-    container,
-    {
-      text:
-        qrUrl,
-
-      width:
-        260,
-
-      height:
-        260,
-
-      correctLevel:
-        QRCode.CorrectLevel.H
-    }
-  );
-
+  new QRCode(container, {
+    text: qrUrl,
+    width: 260,
+    height: 260,
+    correctLevel:
+      QRCode.CorrectLevel.H
+  });
 
   $("closeQrButton")
     ?.addEventListener(
       "click",
       () => {
-
-        modal.style.display =
-          "none";
-
+        modal.style.display = "none";
       }
     );
-
 
   $("downloadQrButton")
     ?.addEventListener(
       "click",
       () => {
-
         const canvas =
-          container.querySelector(
-            "canvas"
-          );
-
+          container.querySelector("canvas");
 
         const image =
-          container.querySelector(
-            "img"
-          );
-
+          container.querySelector("img");
 
         let url =
-          canvas?.toDataURL(
-            "image/png"
-          );
+          canvas?.toDataURL("image/png");
 
-
-        if (
-          !url &&
-          image
-        ) {
-
-          url =
-            image.src;
+        if (!url && image) {
+          url = image.src;
         }
 
-
         if (!url) {
-
-          alert(
-            "تعذر حفظ QR."
-          );
-
+          alert("تعذر حفظ QR.");
           return;
         }
 
-
         const link =
-          document.createElement(
-            "a"
-          );
+          document.createElement("a");
 
-
-        link.href =
-          url;
-
+        link.href = url;
 
         link.download =
           `DAWAMI1-${employee.full_name}-QR.png`;
 
-
         link.click();
-
       }
     );
 }
 
-
-/* =========================================================
-   LEAVES
-   ========================================================= */
-
 async function loadLeaves() {
+  if (!currentUser) return;
 
-  if (!currentUser) {
-    return;
-  }
-
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabase
-      .from(
-        "leave_requests"
-      )
+      .from("leave_requests")
       .select("*")
-      .eq(
-        "employee_id",
-        currentUser.id
-      )
-      .order(
-        "created_at",
-        {
-          ascending: false
-        }
-      );
-
+      .eq("employee_id", currentUser.id)
+      .order("created_at", {
+        ascending: false
+      });
 
   if (error) {
-
     console.error(
       "تعذر تحميل طلبات الإجازات:",
       error
@@ -2620,116 +1507,74 @@ async function loadLeaves() {
     return;
   }
 
-
-  renderLeaves(
-    data || []
-  );
+  renderLeaves(data || []);
 }
 
-
-/* =========================================================
-   RENDER LEAVES
-   ========================================================= */
-
-function renderLeaves(
-  rows
-) {
-
+function renderLeaves(rows) {
   const container =
     $("leaveList");
 
-
-  if (!container) {
-    return;
-  }
-
+  if (!container) return;
 
   if (!rows.length) {
-
     container.innerHTML =
       "<p>لا توجد طلبات إجازة.</p>";
 
     return;
   }
 
-
   container.innerHTML =
     rows
-      .map(
-        row => `
+      .map(row => `
+        <div class="card">
+          <strong>
+            ${escapeHtml(
+              row.start_date || "—"
+            )}
+          </strong>
 
-          <div class="card">
+          <span>
+            إلى
+            ${escapeHtml(
+              row.end_date || "—"
+            )}
+          </span>
 
-            <strong>
-              ${escapeHtml(
-                row.start_date ||
-                "—"
-              )}
-            </strong>
+          <p>
+            ${escapeHtml(
+              row.reason || "—"
+            )}
+          </p>
 
-            <span>
-              إلى
-              ${escapeHtml(
-                row.end_date ||
-                "—"
-              )}
-            </span>
-
-            <p>
-              ${escapeHtml(
-                row.reason ||
-                "—"
-              )}
-            </p>
-
-            <strong>
-              ${escapeHtml(
-                row.status ||
-                "pending"
-              )}
-            </strong>
-
-          </div>
-
-        `
-      )
+          <strong>
+            ${escapeHtml(
+              row.status || "pending"
+            )}
+          </strong>
+        </div>
+      `)
       .join("");
 }
 
-
-/* =========================================================
-   LEAVE FORM
-   ========================================================= */
-
 function setupLeaveForm() {
-
   $("leaveForm")
     ?.addEventListener(
       "submit",
       async event => {
-
         event.preventDefault();
 
-
         const start =
-          $("leaveStart")
-            ?.value;
+          $("leaveStart")?.value;
 
         const end =
-          $("leaveEnd")
-            ?.value;
+          $("leaveEnd")?.value;
 
         const reason =
           $("leaveReason")
             ?.value
             .trim();
 
-
-        if (
-          !start ||
-          !end
-        ) {
-
+        if (!start || !end) {
           alert(
             "حدد تاريخ الإجازة."
           );
@@ -2737,12 +1582,10 @@ function setupLeaveForm() {
           return;
         }
 
-
         if (
           new Date(end) <
           new Date(start)
         ) {
-
           alert(
             "تاريخ النهاية يجب أن يكون بعد تاريخ البداية."
           );
@@ -2750,9 +1593,7 @@ function setupLeaveForm() {
           return;
         }
 
-
         try {
-
           const totalDays =
             Math.floor(
               (
@@ -2767,16 +1608,10 @@ function setupLeaveForm() {
               )
             ) + 1;
 
-
-          const {
-            error
-          } =
+          const { error } =
             await supabase
-              .from(
-                "leave_requests"
-              )
+              .from("leave_requests")
               .insert({
-
                 employee_id:
                   currentUser.id,
 
@@ -2794,48 +1629,30 @@ function setupLeaveForm() {
 
                 status:
                   "pending"
-
               });
 
-
-          if (error) {
-            throw error;
-          }
-
+          if (error) throw error;
 
           event.target.reset();
 
-
           await loadLeaves();
-
 
           alert(
             "تم إرسال طلب الإجازة."
           );
-
         } catch (error) {
-
-          console.error(
-            error
-          );
+          console.error(error);
 
           alert(
             error.message ||
             "تعذر إرسال طلب الإجازة."
           );
         }
-
       }
     );
 }
 
-
-/* =========================================================
-   PAYROLL
-   ========================================================= */
-
 async function loadPayroll() {
-
   if (
     !currentProfile ||
     !currentUser
@@ -2843,18 +1660,13 @@ async function loadPayroll() {
     return;
   }
 
-
   const base =
     Number(
-      currentProfile.monthly_salary ||
-      0
+      currentProfile.monthly_salary || 0
     );
 
-
   let overtimeRows = [];
-
   let deductionRows = [];
-
 
   const overtimeResult =
     await supabase
@@ -2865,16 +1677,10 @@ async function loadPayroll() {
         currentUser.id
       );
 
-
-  if (
-    !overtimeResult.error
-  ) {
-
+  if (!overtimeResult.error) {
     overtimeRows =
-      overtimeResult.data ||
-      [];
+      overtimeResult.data || [];
   }
-
 
   const deductionResult =
     await supabase
@@ -2885,200 +1691,123 @@ async function loadPayroll() {
         currentUser.id
       );
 
-
-  if (
-    !deductionResult.error
-  ) {
-
+  if (!deductionResult.error) {
     deductionRows =
-      deductionResult.data ||
-      [];
+      deductionResult.data || [];
   }
 
-
   const overtime =
-    overtimeRows
-      .reduce(
-        (
-          total,
-          row
-        ) => {
-
-          const amount =
-            Number(
-              row.amount ||
-              row.total ||
-              row.value ||
-              0
-            );
-
-          return (
-            total +
-            amount
+    overtimeRows.reduce(
+      (total, row) => {
+        const amount =
+          Number(
+            row.amount ||
+            row.total ||
+            row.value ||
+            0
           );
 
-        },
-        0
-      );
-
+        return total + amount;
+      },
+      0
+    );
 
   const deductions =
-    deductionRows
-      .reduce(
-        (
-          total,
-          row
-        ) => {
-
-          const amount =
-            Number(
-              row.amount ||
-              row.value ||
-              0
-            );
-
-          return (
-            total +
-            amount
+    deductionRows.reduce(
+      (total, row) => {
+        const amount =
+          Number(
+            row.amount ||
+            row.value ||
+            0
           );
 
-        },
-        0
-      );
-
+        return total + amount;
+      },
+      0
+    );
 
   const total =
     base +
     overtime -
     deductions;
 
-
   if ($("baseSalary")) {
-
-    $("baseSalary")
-      .textContent =
+    $("baseSalary").textContent =
       money(base);
   }
 
-
   if ($("overtimePay")) {
-
-    $("overtimePay")
-      .textContent =
+    $("overtimePay").textContent =
       money(overtime);
   }
 
-
   if ($("deductions")) {
-
-    $("deductions")
-      .textContent =
+    $("deductions").textContent =
       money(deductions);
   }
 
-
   if ($("totalSalary")) {
-
-    $("totalSalary")
-      .textContent =
+    $("totalSalary").textContent =
       money(total);
   }
 
-
   if ($("expectedSalary")) {
-
-    $("expectedSalary")
-      .textContent =
+    $("expectedSalary").textContent =
       money(total);
   }
 }
 
-
-/* =========================================================
-   ADMIN ATTENDANCE
-   ========================================================= */
-
 async function loadAdminAttendance() {
-
   if (
-    currentRole !==
-    "admin" &&
-    currentRole !==
-    "hr"
+    currentRole !== "admin" &&
+    currentRole !== "hr"
   ) {
     return;
   }
 
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabase
       .from("attendance")
       .select("*")
-      .order(
-        "work_date",
-        {
-          ascending: false
-        }
-      )
+      .order("work_date", {
+        ascending: false
+      })
       .limit(500);
 
-
   if (error) {
-
-    alert(
-      error.message
-    );
-
+    alert(error.message);
     return;
   }
-
 
   const employeeIds =
     [
       ...new Set(
         (data || [])
           .map(
-            row =>
-              row.employee_id
+            row => row.employee_id
           )
           .filter(Boolean)
       )
     ];
 
+  let profiles = [];
 
-  let profiles =
-    [];
-
-
-  if (
-    employeeIds.length
-  ) {
-
+  if (employeeIds.length) {
     const result =
       await supabase
         .from("profiles")
-        .select(
-          "id,full_name"
-        )
+        .select("id,full_name")
         .in(
           "id",
           employeeIds
         );
 
-
-    if (
-      !result.error
-    ) {
-
+    if (!result.error) {
       profiles =
-        result.data ||
-        [];
+        result.data || [];
     }
   }
-
 
   const names =
     new Map(
@@ -3090,21 +1819,12 @@ async function loadAdminAttendance() {
       )
     );
 
-
   const tbody =
     $("adminAttendanceTable");
 
+  if (!tbody) return;
 
-  if (!tbody) {
-    return;
-  }
-
-
-  if (
-    !data ||
-    !data.length
-  ) {
-
+  if (!data || !data.length) {
     tbody.innerHTML = `
       <tr>
         <td colspan="8">
@@ -3116,163 +1836,114 @@ async function loadAdminAttendance() {
     return;
   }
 
-
   tbody.innerHTML =
     data
-      .map(
-        row => `
+      .map(row => `
+        <tr>
+          <td>
+            ${escapeHtml(
+              names.get(
+                row.employee_id
+              ) || "—"
+            )}
+          </td>
 
-          <tr>
+          <td>
+            ${escapeHtml(
+              row.work_date || "—"
+            )}
+          </td>
 
-            <td>
-              ${escapeHtml(
-                names.get(
-                  row.employee_id
-                ) ||
-                "—"
-              )}
-            </td>
+          <td>
+            ${formatTime(
+              row.clock_in
+            )}
+          </td>
 
-            <td>
-              ${escapeHtml(
-                row.work_date ||
-                "—"
-              )}
-            </td>
+          <td>
+            ${formatTime(
+              row.clock_out
+            )}
+          </td>
 
-            <td>
-              ${formatTime(
-                row.clock_in
-              )}
-            </td>
+          <td>
+            ${minutesToHours(
+              row.regular_minutes
+            )}
+          </td>
 
-            <td>
-              ${formatTime(
-                row.clock_out
-              )}
-            </td>
+          <td>
+            ${minutesToHours(
+              row.overtime_minutes
+            )}
+          </td>
 
-            <td>
-              ${minutesToHours(
-                row.regular_minutes
-              )}
-            </td>
+          <td>
+            ${escapeHtml(
+              row.status || "—"
+            )}
+          </td>
 
-            <td>
-              ${minutesToHours(
-                row.overtime_minutes
-              )}
-            </td>
-
-            <td>
-              ${escapeHtml(
-                row.status ||
-                "—"
-              )}
-            </td>
-
-            <td>
-              ${escapeHtml(
-                row.notes ||
-                "—"
-              )}
-            </td>
-
-          </tr>
-
-        `
-      )
+          <td>
+            ${escapeHtml(
+              row.notes || "—"
+            )}
+          </td>
+        </tr>
+      `)
       .join("");
 }
 
-
-/* =========================================================
-   ADMIN LEAVES
-   ========================================================= */
-
 async function loadAdminLeaves() {
-
   if (
-    currentRole !==
-    "admin" &&
-    currentRole !==
-    "hr"
+    currentRole !== "admin" &&
+    currentRole !== "hr"
   ) {
     return;
   }
 
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
     await supabase
-      .from(
-        "leave_requests"
-      )
+      .from("leave_requests")
       .select("*")
-      .order(
-        "created_at",
-        {
-          ascending: false
-        }
-      )
+      .order("created_at", {
+        ascending: false
+      })
       .limit(500);
 
-
   if (error) {
-
-    alert(
-      error.message
-    );
-
+    alert(error.message);
     return;
   }
-
 
   const employeeIds =
     [
       ...new Set(
         (data || [])
           .map(
-            row =>
-              row.employee_id
+            row => row.employee_id
           )
           .filter(Boolean)
       )
     ];
 
+  let profiles = [];
 
-  let profiles =
-    [];
-
-
-  if (
-    employeeIds.length
-  ) {
-
+  if (employeeIds.length) {
     const result =
       await supabase
         .from("profiles")
-        .select(
-          "id,full_name"
-        )
+        .select("id,full_name")
         .in(
           "id",
           employeeIds
         );
 
-
-    if (
-      !result.error
-    ) {
-
+    if (!result.error) {
       profiles =
-        result.data ||
-        [];
+        result.data || [];
     }
   }
-
 
   const names =
     new Map(
@@ -3284,21 +1955,12 @@ async function loadAdminLeaves() {
       )
     );
 
-
   const tbody =
     $("adminLeavesTable");
 
+  if (!tbody) return;
 
-  if (!tbody) {
-    return;
-  }
-
-
-  if (
-    !data ||
-    !data.length
-  ) {
-
+  if (!data || !data.length) {
     tbody.innerHTML = `
       <tr>
         <td colspan="7">
@@ -3310,175 +1972,122 @@ async function loadAdminLeaves() {
     return;
   }
 
-
   tbody.innerHTML =
     data
-      .map(
-        row => `
+      .map(row => `
+        <tr>
+          <td>
+            ${escapeHtml(
+              names.get(
+                row.employee_id
+              ) || "—"
+            )}
+          </td>
 
-          <tr>
+          <td>
+            ${escapeHtml(
+              row.start_date || "—"
+            )}
+          </td>
 
-            <td>
-              ${escapeHtml(
-                names.get(
-                  row.employee_id
-                ) ||
-                "—"
-              )}
-            </td>
+          <td>
+            ${escapeHtml(
+              row.end_date || "—"
+            )}
+          </td>
 
-            <td>
-              ${escapeHtml(
-                row.start_date ||
-                "—"
-              )}
-            </td>
+          <td>
+            ${escapeHtml(
+              row.total_days ?? "—"
+            )}
+          </td>
 
-            <td>
-              ${escapeHtml(
-                row.end_date ||
-                "—"
-              )}
-            </td>
+          <td>
+            ${escapeHtml(
+              row.reason || "—"
+            )}
+          </td>
 
-            <td>
-              ${escapeHtml(
-                row.total_days ??
-                "—"
-              )}
-            </td>
+          <td>
+            ${escapeHtml(
+              row.status || "pending"
+            )}
+          </td>
 
-            <td>
-              ${escapeHtml(
-                row.reason ||
-                "—"
-              )}
-            </td>
-
-            <td>
-              ${escapeHtml(
-                row.status ||
-                "pending"
-              )}
-            </td>
-
-            <td>
-              ${escapeHtml(
-                row.review_note ||
-                "—"
-              )}
-            </td>
-
-          </tr>
-
-        `
-      )
+          <td>
+            ${escapeHtml(
+              row.review_note || "—"
+            )}
+          </td>
+        </tr>
+      `)
       .join("");
 }
 
-
-/* =========================================================
-   LOGOUT
-   ========================================================= */
-
 async function logout() {
-
   try {
-
-    await supabase.auth
-      .signOut();
-
+    await supabase.auth.signOut();
   } catch (error) {
-
-    console.error(
-      error
-    );
+    console.error(error);
   }
 
-
-  currentUser =
-    null;
-
-  currentProfile =
-    null;
-
-  currentRole =
-    null;
-
+  currentUser = null;
+  currentProfile = null;
+  currentRole = null;
 
   $("app")
     ?.classList
     .add("hidden");
-
 
   $("loginScreen")
     ?.classList
     .remove("hidden");
 }
 
-
-/* =========================================================
-   FORGOT PASSWORD
-   ========================================================= */
-
 function setupForgotPassword() {
-
   $("forgotPasswordBtn")
     ?.addEventListener(
       "click",
       () => {
-
         $("loginScreen")
           ?.classList
           .add("hidden");
 
-
         $("forgotScreen")
           ?.classList
           .remove("hidden");
-
       }
     );
-
 
   $("backToLoginBtn")
     ?.addEventListener(
       "click",
       () => {
-
         $("forgotScreen")
           ?.classList
           .add("hidden");
 
-
         $("loginScreen")
           ?.classList
           .remove("hidden");
-
       }
     );
-
 
   $("forgotForm")
     ?.addEventListener(
       "submit",
       async event => {
-
         event.preventDefault();
-
 
         const email =
           $("forgotEmail")
             ?.value
             .trim();
 
-
         const message =
           $("forgotMessage");
 
-
         if (!email) {
-
           showMessage(
             message,
             "أدخل البريد الإلكتروني.",
@@ -3488,12 +2097,8 @@ function setupForgotPassword() {
           return;
         }
 
-
         try {
-
-          const {
-            error
-          } =
+          const { error } =
             await supabase.auth
               .resetPasswordForEmail(
                 email,
@@ -3503,28 +2108,20 @@ function setupForgotPassword() {
                 }
               );
 
-
-          if (error) {
-            throw error;
-          }
-
+          if (error) throw error;
 
           showMessage(
             message,
             "تم إرسال رابط الاستعادة إذا كان الحساب موجوداً.",
             "success"
           );
-
         } catch (error) {
-
-          console.error(
-            error
-          );
+          console.error(error);
 
           showMessage(
             message,
             error.message ||
-            "تعذر إرسال رابط الاستعادة.",
+              "تعذر إرسال رابط الاستعادة.",
             "error"
           );
         }
@@ -3532,20 +2129,12 @@ function setupForgotPassword() {
     );
 }
 
-
-/* =========================================================
-   RESET PASSWORD
-   ========================================================= */
-
 function setupResetPassword() {
-
   $("resetForm")
     ?.addEventListener(
       "submit",
       async event => {
-
         event.preventDefault();
-
 
         const password =
           $("newPassword")
@@ -3555,12 +2144,7 @@ function setupResetPassword() {
           $("confirmPassword")
             ?.value;
 
-
-        if (
-          !password ||
-          !confirm
-        ) {
-
+        if (!password || !confirm) {
           showMessage(
             $("resetMessage"),
             "أدخل كلمة المرور.",
@@ -3570,12 +2154,7 @@ function setupResetPassword() {
           return;
         }
 
-
-        if (
-          password !==
-          confirm
-        ) {
-
+        if (password !== confirm) {
           showMessage(
             $("resetMessage"),
             "كلمتا المرور غير متطابقتين.",
@@ -3585,39 +2164,26 @@ function setupResetPassword() {
           return;
         }
 
-
         try {
+          const { error } =
+            await supabase.auth.updateUser({
+              password
+            });
 
-          const {
-            error
-          } =
-            await supabase.auth
-              .updateUser({
-                password
-              });
-
-
-          if (error) {
-            throw error;
-          }
-
+          if (error) throw error;
 
           showMessage(
             $("resetMessage"),
             "تم تغيير كلمة المرور بنجاح.",
             "success"
           );
-
         } catch (error) {
-
-          console.error(
-            error
-          );
+          console.error(error);
 
           showMessage(
             $("resetMessage"),
             error.message ||
-            "تعذر تغيير كلمة المرور.",
+              "تعذر تغيير كلمة المرور.",
             "error"
           );
         }
@@ -3625,99 +2191,56 @@ function setupResetPassword() {
     );
 }
 
-
-/* =========================================================
-   AUTH STATE
-   ========================================================= */
-
 function setupAuthListener() {
+  supabase.auth.onAuthStateChange(
+    async (event, session) => {
+      console.log(
+        "Auth event:",
+        event
+      );
 
-  supabase.auth
-    .onAuthStateChange(
-      async (
-        event,
-        session
-      ) => {
+      if (session?.user) {
+        currentUser =
+          session.user;
 
-        console.log(
-          "Auth event:",
-          event
-        );
-
-
-        if (
-          session?.user
-        ) {
-
-          currentUser =
-            session.user;
-
-
-          try {
-
-            await loadApplication();
-
-          } catch (error) {
-
-            console.error(
-              "Application loading error:",
-              error
-            );
-
-          }
+        try {
+          await loadApplication();
+        } catch (error) {
+          console.error(
+            "Application loading error:",
+            error
+          );
         }
-
       }
-    );
+    }
+  );
 }
 
-
-/* =========================================================
-   INITIALIZE
-   ========================================================= */
-
 async function init() {
-
   console.log(
     "DAWAMI1: initializing..."
   );
 
-
   try {
-
     const handledQr =
       await checkQrUrlLogin();
 
-
-    if (handledQr) {
-      return;
-    }
-
+    if (handledQr) return;
   } catch (error) {
-
     console.error(
       "QR initialization error:",
       error
     );
   }
 
-
   setupLoginUi();
-
   ensureEmployeeExtraFields();
-
   setupNavigation();
-
   setupEmployeeForm();
-
   setupLeaveForm();
-
   setupForgotPassword();
-
   setupResetPassword();
-
   setupAuthListener();
-
 
   $("loginForm")
     ?.addEventListener(
@@ -3725,13 +2248,11 @@ async function init() {
       handleLogin
     );
 
-
   $("attendanceButton")
     ?.addEventListener(
       "click",
       handleAttendanceButton
     );
-
 
   $("logoutBtn")
     ?.addEventListener(
@@ -3739,70 +2260,44 @@ async function init() {
       logout
     );
 
-
   try {
-
-    const {
-      data
-    } =
+    const { data } =
       await supabase.auth
         .getSession();
-
 
     const session =
       data?.session;
 
-
-    if (
-      session?.user
-    ) {
-
+    if (session?.user) {
       currentUser =
         session.user;
 
-
       await loadApplication();
     }
-
   } catch (error) {
-
     console.error(
       "Session initialization error:",
       error
     );
 
     try {
-
-      await supabase.auth
-        .signOut();
-
+      await supabase.auth.signOut();
     } catch (_) {}
-
   }
-
 
   console.log(
     "DAWAMI1: initialized."
   );
 }
 
-
-/* =========================================================
-   START
-   ========================================================= */
-
 if (
   document.readyState ===
   "loading"
 ) {
-
   document.addEventListener(
     "DOMContentLoaded",
     init
   );
-
 } else {
-
   init();
-
 }
