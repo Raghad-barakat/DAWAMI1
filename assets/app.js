@@ -1,14 +1,17 @@
+```javascript
 /* =========================================================
    DAWAMI1 APP.JS
    ========================================================= */
 
+/* =========================================================
+   SUPABASE CONFIG
+   ========================================================= */
+
 const SUPABASE_URL =
-  window.DAWAMI_CONFIG?.SUPABASE_URL ||
-  window.SUPABASE_URL;
+  window.WORKTRACK_CONFIG?.SUPABASE_URL;
 
 const SUPABASE_ANON_KEY =
-  window.DAWAMI_CONFIG?.SUPABASE_ANON_KEY ||
-  window.SUPABASE_ANON_KEY;
+  window.WORKTRACK_CONFIG?.SUPABASE_KEY;
 
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -24,12 +27,20 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 }
 
 
+/* =========================================================
+   SUPABASE CLIENT
+   ========================================================= */
+
 const supabase =
   window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_ANON_KEY
   );
 
+
+/* =========================================================
+   EDGE FUNCTION
+   ========================================================= */
 
 const FUNCTION_NAME =
   "employee-access";
@@ -248,12 +259,6 @@ function setupLoginUi() {
     );
 
 
-  /*
-    مهم:
-    لا نريد أن يظهر للموظف "رقم الهوية".
-    الحقل العام للأدمن فقط.
-  */
-
   if (loginInput) {
 
     loginInput.type = "email";
@@ -271,10 +276,6 @@ function setupLoginUi() {
 
   }
 
-
-  /*
-    إضافة منطقة QR بدون تعديل HTML
-  */
 
   const loginForm =
     $("loginForm");
@@ -341,6 +342,7 @@ function setupLoginUi() {
     `;
 
     loginForm.appendChild(area);
+
 
     $("scanEmployeeQrBtn")
       ?.addEventListener(
@@ -478,11 +480,6 @@ async function processQrValue(
         .trim();
 
 
-    /*
-      إذا كان QR رابط الموقع:
-      ?employee_code=XXXX
-    */
-
     try {
 
       const url =
@@ -538,11 +535,6 @@ async function processQrValue(
 
     }
 
-
-    /*
-      Edge Function يعطينا Magic Link
-      خاص بالحساب.
-    */
 
     window.location.replace(
       result.action_link
@@ -996,6 +988,7 @@ function setupNavigation() {
             const page =
               button.dataset.page;
 
+
             document
               .querySelectorAll(
                 ".nav-btn"
@@ -1190,6 +1183,7 @@ async function loadTodayAttendance() {
     $("todayMessage").textContent =
       "اضغط لتسجيل بداية الدوام.";
 
+
     if (button) {
 
       button.textContent =
@@ -1199,6 +1193,7 @@ async function loadTodayAttendance() {
         false;
 
     }
+
 
     return;
 
@@ -1218,6 +1213,7 @@ async function loadTodayAttendance() {
         record.clock_in
       )}`;
 
+
     if (button) {
 
       button.textContent =
@@ -1227,6 +1223,7 @@ async function loadTodayAttendance() {
         false;
 
     }
+
 
     return;
 
@@ -1247,6 +1244,7 @@ async function loadTodayAttendance() {
       )} إلى ${formatTime(
         record.clock_out
       )}`;
+
 
     if (button) {
 
@@ -1273,6 +1271,11 @@ async function handleAttendanceButton() {
     $("attendanceButton");
 
 
+  if (!button) {
+    return;
+  }
+
+
   button.disabled =
     true;
 
@@ -1290,7 +1293,6 @@ async function handleAttendanceButton() {
     ) {
 
       const {
-        data,
         error,
       } =
         await supabase.rpc(
@@ -1308,7 +1310,6 @@ async function handleAttendanceButton() {
     } else {
 
       const {
-        data,
         error,
       } =
         await supabase.rpc(
@@ -1417,18 +1418,26 @@ async function loadAttendanceSummary() {
       );
 
 
-  $("monthlyHours")
-    .textContent =
-    minutesToHours(
-      regular
-    );
+  if ($("monthlyHours")) {
+
+    $("monthlyHours")
+      .textContent =
+      minutesToHours(
+        regular
+      );
+
+  }
 
 
-  $("overtimeHours")
-    .textContent =
-    minutesToHours(
-      overtime
-    );
+  if ($("overtimeHours")) {
+
+    $("overtimeHours")
+      .textContent =
+      minutesToHours(
+        overtime
+      );
+
+  }
 
 }
 
@@ -1624,7 +1633,9 @@ async function loadEmployees() {
   if (
     currentRole !== "admin"
   ) {
+
     return;
+
   }
 
 
@@ -1812,12 +1823,14 @@ function setupEmployeeForm() {
           "hidden"
         );
 
+
         if ($("employeeHours")) {
 
           $("employeeHours")
             .value = "8";
 
         }
+
 
         if ($("employeeDays")) {
 
@@ -2029,10 +2042,6 @@ function ensureEmployeeExtraFields() {
   if (!employeeForm) return;
 
 
-  /*
-    رقم الهوية
-  */
-
   if (
     !$("employeeIdentity")
   ) {
@@ -2089,10 +2098,6 @@ function ensureEmployeeExtraFields() {
   }
 
 
-  /*
-    رقم الهاتف
-  */
-
   if (
     !$("employeePhone")
   ) {
@@ -2147,11 +2152,6 @@ function ensureEmployeeExtraFields() {
   }
 
 
-  /*
-    البريد الإلكتروني:
-    لا نحتاجه للموظف.
-  */
-
   const email =
     $("employeeEmail");
 
@@ -2169,6 +2169,7 @@ function ensureEmployeeExtraFields() {
 
     email.value =
       "";
+
 
     if (emailGroup) {
 
@@ -2290,6 +2291,7 @@ async function showQrModal(
     modal.id =
       "employeeQrModal";
 
+
     modal.style.cssText = `
 
       position:fixed;
@@ -2302,6 +2304,7 @@ async function showQrModal(
       direction:rtl;
 
     `;
+
 
     document.body.appendChild(
       modal
@@ -2454,11 +2457,14 @@ async function showQrModal(
             "a"
           );
 
+
         link.href =
           url;
 
+
         link.download =
           `DAWAMI1-${employee.full_name}-QR.png`;
+
 
         link.click();
 
@@ -2543,7 +2549,6 @@ function renderLeaves(
             <strong>
               ${escapeHtml(
                 row.start_date ||
-                row.from_date ||
                 "—"
               )}
             </strong>
@@ -2552,7 +2557,6 @@ function renderLeaves(
               إلى
               ${escapeHtml(
                 row.end_date ||
-                row.to_date ||
                 "—"
               )}
             </span>
@@ -2632,6 +2636,27 @@ function setupLeaveForm() {
         }
 
 
+        const startDate =
+          new Date(
+            `${start}T00:00:00`
+          );
+
+        const endDate =
+          new Date(
+            `${end}T00:00:00`
+          );
+
+
+        const totalDays =
+          Math.floor(
+            (
+              endDate -
+              startDate
+            ) /
+            86400000
+          ) + 1;
+
+
         try {
 
           const {
@@ -2651,6 +2676,9 @@ function setupLeaveForm() {
 
                 end_date:
                   end,
+
+                total_days:
+                  totalDays,
 
                 reason,
 
@@ -2711,20 +2739,85 @@ async function loadPayroll() {
     );
 
 
+  /*
+    لا نعتمد على جدول overtime.
+    نحسب قيمة الإضافي من attendance.
+  */
+
   const {
-    data: overtimeRows,
+    data: attendanceRows,
+    error: attendanceError,
   } =
     await supabase
-      .from("overtime")
-      .select("*")
+      .from("attendance")
+      .select(
+        "overtime_minutes"
+      )
       .eq(
         "employee_id",
         currentUser.id
       );
 
 
+  if (attendanceError) {
+
+    console.error(
+      "تعذر تحميل الإضافي:",
+      attendanceError
+    );
+
+  }
+
+
+  const overtimeMinutes =
+    (attendanceRows || [])
+      .reduce(
+        (
+          total,
+          row
+        ) =>
+          total +
+          Number(
+            row.overtime_minutes || 0
+          ),
+        0
+      );
+
+
+  /*
+    القيمة الافتراضية لحساب الإضافي:
+    الراتب الشهري ÷ (26 يوم × ساعات العمل)
+  */
+
+  const workHours =
+    Number(
+      currentProfile.work_hours_per_day ||
+      8
+    );
+
+
+  const hourlyRate =
+    workHours > 0
+      ? base / (26 * workHours)
+      : 0;
+
+
+  const overtimeRate =
+    hourlyRate * 1.5;
+
+
+  const overtimeHours =
+    overtimeMinutes / 60;
+
+
+  const overtime =
+    overtimeHours *
+    overtimeRate;
+
+
   const {
     data: deductionRows,
+    error: deductionError,
   } =
     await supabase
       .from("deductions")
@@ -2732,30 +2825,21 @@ async function loadPayroll() {
       .eq(
         "employee_id",
         currentUser.id
+      )
+      .eq(
+        "status",
+        "approved"
       );
 
 
-  const overtime =
-    (overtimeRows || [])
-      .reduce(
-        (
-          total,
-          row
-        ) => {
+  if (deductionError) {
 
-          const amount =
-            Number(
-              row.amount ||
-              row.total ||
-              row.value ||
-              0
-            );
+    console.error(
+      "تعذر تحميل الخصومات:",
+      deductionError
+    );
 
-          return total + amount;
-
-        },
-        0
-      );
+  }
 
 
   const deductions =
@@ -2769,7 +2853,6 @@ async function loadPayroll() {
           const amount =
             Number(
               row.amount ||
-              row.value ||
               0
             );
 
@@ -2786,29 +2869,49 @@ async function loadPayroll() {
     deductions;
 
 
-  $("baseSalary")
-    .textContent =
-    money(base);
+  if ($("baseSalary")) {
+
+    $("baseSalary")
+      .textContent =
+      money(base);
+
+  }
 
 
-  $("overtimePay")
-    .textContent =
-    money(overtime);
+  if ($("overtimePay")) {
+
+    $("overtimePay")
+      .textContent =
+      money(overtime);
+
+  }
 
 
-  $("deductions")
-    .textContent =
-    money(deductions);
+  if ($("deductions")) {
+
+    $("deductions")
+      .textContent =
+      money(deductions);
+
+  }
 
 
-  $("totalSalary")
-    .textContent =
-    money(total);
+  if ($("totalSalary")) {
+
+    $("totalSalary")
+      .textContent =
+      money(total);
+
+  }
 
 
-  $("expectedSalary")
-    .textContent =
-    money(total);
+  if ($("expectedSalary")) {
+
+    $("expectedSalary")
+      .textContent =
+      money(total);
+
+  }
 
 }
 
@@ -3091,7 +3194,6 @@ async function loadAdminLeaves() {
             <td>
               ${escapeHtml(
                 row.start_date ||
-                row.from_date ||
                 "—"
               )}
             </td>
@@ -3099,14 +3201,13 @@ async function loadAdminLeaves() {
             <td>
               ${escapeHtml(
                 row.end_date ||
-                row.to_date ||
                 "—"
               )}
             </td>
 
             <td>
               ${escapeHtml(
-                row.days ||
+                row.total_days ||
                 "—"
               )}
             </td>
@@ -3146,6 +3247,7 @@ async function logout() {
 
   await supabase.auth.signOut();
 
+
   currentUser =
     null;
 
@@ -3172,7 +3274,6 @@ async function logout() {
 
 /* =========================================================
    FORGOT PASSWORD
-   للأدمن فقط
    ========================================================= */
 
 function setupForgotPassword() {
@@ -3186,6 +3287,7 @@ function setupForgotPassword() {
           ?.classList.add(
             "hidden"
           );
+
 
         $("forgotScreen")
           ?.classList.remove(
@@ -3205,6 +3307,7 @@ function setupForgotPassword() {
           ?.classList.add(
             "hidden"
           );
+
 
         $("loginScreen")
           ?.classList.remove(
@@ -3230,6 +3333,19 @@ function setupForgotPassword() {
 
         const message =
           $("forgotMessage");
+
+
+        if (!email) {
+
+          showMessage(
+            message,
+            "أدخل البريد الإلكتروني.",
+            "error"
+          );
+
+          return;
+
+        }
 
 
         try {
@@ -3301,6 +3417,34 @@ function setupResetPassword() {
             ?.value;
 
 
+        if (!password) {
+
+          showMessage(
+            $("resetMessage"),
+            "أدخل كلمة المرور الجديدة.",
+            "error"
+          );
+
+          return;
+
+        }
+
+
+        if (
+          password.length < 6
+        ) {
+
+          showMessage(
+            $("resetMessage"),
+            "كلمة المرور يجب أن تكون 6 أحرف على الأقل.",
+            "error"
+          );
+
+          return;
+
+        }
+
+
         if (
           password !== confirm
         ) {
@@ -3340,7 +3484,7 @@ function setupResetPassword() {
 
         showMessage(
           $("resetMessage"),
-          "تم تغيير كلمة المرور.",
+          "تم تغيير كلمة المرور بنجاح.",
           "success"
         );
 
@@ -3369,6 +3513,7 @@ function setupAuthListener() {
 
           currentUser =
             session.user;
+
 
           try {
 
@@ -3461,6 +3606,7 @@ async function init() {
     currentUser =
       session.user;
 
+
     try {
 
       await loadApplication();
@@ -3470,6 +3616,7 @@ async function init() {
       console.error(
         error
       );
+
 
       await supabase.auth
         .signOut();
@@ -3481,7 +3628,12 @@ async function init() {
 }
 
 
+/* =========================================================
+   START APP
+   ========================================================= */
+
 document.addEventListener(
   "DOMContentLoaded",
   init
 );
+```
