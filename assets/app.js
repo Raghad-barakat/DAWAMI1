@@ -14,39 +14,23 @@ const SUPABASE_URL =
   window.DAWAMI_CONFIG?.SUPABASE_URL ||
   window.SUPABASE_URL;
 
-const SUPABASE_KEY =
+const SUPABASE_ANON_KEY =
   window.WORKTRACK_CONFIG?.SUPABASE_KEY ||
-  window.WORKTRACK_CONFIG?.SUPABASE_ANON_KEY ||
-  window.DAWAMI_CONFIG?.SUPABASE_KEY ||
   window.DAWAMI_CONFIG?.SUPABASE_ANON_KEY ||
   window.SUPABASE_ANON_KEY;
 
-
-/* =========================================================
-   CHECK CONFIGURATION
-   ========================================================= */
-
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-
-  console.error(
-    "DAWAMI1: Supabase configuration missing."
-  );
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error("DAWAMI1: Supabase configuration missing.");
 
   alert(
     "تعذر تشغيل النظام: إعدادات Supabase غير موجودة."
   );
-
 }
-
-
-/* =========================================================
-   SUPABASE CLIENT
-   ========================================================= */
 
 const supabase =
   window.supabase.createClient(
     SUPABASE_URL,
-    SUPABASE_KEY
+    SUPABASE_ANON_KEY
   );
 
 
