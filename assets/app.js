@@ -137,8 +137,6 @@ async function callEmployeeFunction(payload) {
     throw new Error(
       "لم يصل رد من الخادم."
     );
-  }
-
  async function callEmployeeFunction(payload) {
   const { data: sessionData } =
     await supabase.auth.getSession();
