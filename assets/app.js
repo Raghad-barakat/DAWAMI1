@@ -139,6 +139,48 @@ async function callEmployeeFunction(payload) {
     );
   }
 
+ async function callEmployeeFunction(payload) {
+  const { data: sessionData } =
+    await supabase.auth.getSession();
+
+  const session = sessionData?.session;
+
+  const headers = {
+    "Content-Type": "application/json"
+  };
+
+  if (session?.access_token) {
+    headers.Authorization =
+      `Bearer ${session.access_token}`;
+  }
+
+  const { data, error } =
+    await supabase.functions.invoke(
+      FUNCTION_NAME,
+      {
+        body: payload,
+        headers: headers
+      }
+    );
+
+  if (error) {
+    console.error(
+      "Edge Function error:",
+      error
+    );
+
+    throw new Error(
+      error.message ||
+      "تعذر الاتصال بالخادم."
+    );
+  }
+
+  if (!data) {
+    throw new Error(
+      "لم يصل رد من الخادم."
+    );
+  }
+
   if (data.ok === false) {
     throw new Error(
       data.error ||
@@ -148,14 +190,6 @@ async function callEmployeeFunction(payload) {
 
   return data;
 }
-      }
-    );
-
-  if (error) {
-    console.error("Edge Function error:", error);
-    throw new Error(
-      error.message || "تعذر الاتصال بالخادم."
-    );
   }
 
   if (!data) {
