@@ -117,7 +117,37 @@ async function callEmployeeFunction(payload) {
       FUNCTION_NAME,
       {
         body: payload,
-        headers
+        headers: headers
+      }
+    );
+
+  if (error) {
+    console.error(
+      "Edge Function error:",
+      error
+    );
+
+    throw new Error(
+      error.message ||
+      "تعذر الاتصال بالخادم."
+    );
+  }
+
+  if (!data) {
+    throw new Error(
+      "لم يصل رد من الخادم."
+    );
+  }
+
+  if (data.ok === false) {
+    throw new Error(
+      data.error ||
+      "حدث خطأ."
+    );
+  }
+
+  return data;
+}
       }
     );
 
